@@ -8,20 +8,29 @@ import (
 )
 
 type Initialization struct {
-	userRepo  repository.UserRepository
-	userSvc   services.UserService
-	UserHdler handlers.UserHandler
-	auth      auth.Auth
+	userRepo       repository.UserRepository
+	operationRepo  repository.OperationRepository
+	categoryRepo   repository.CategoryRepository
+	userSvc        services.UserService
+	operationSvc   services.OperationService
+	UserHdler      handlers.UserHandler
+	OperationHdler handlers.OperationHandler
+	auth           auth.Auth
 }
 
-func NewInitialization(userRepo repository.UserRepository,
-	userService services.UserService,
-	UserHdler handlers.UserHandler,
+func NewInitialization(userRepo repository.UserRepository, operationRepo repository.OperationRepository,
+	categoryRepo repository.CategoryRepository,
+	userService services.UserService, operationSvc services.OperationService,
+	UserHdler handlers.UserHandler, OperationHdler handlers.OperationHandler,
 	auth auth.Auth) *Initialization {
 	return &Initialization{
-		userRepo:  userRepo,
-		userSvc:   userService,
-		UserHdler: UserHdler,
-		auth:      auth,
+		userRepo:       userRepo,
+		operationRepo:  operationRepo,
+		categoryRepo:   categoryRepo,
+		userSvc:        userService,
+		operationSvc:   operationSvc,
+		UserHdler:      UserHdler,
+		OperationHdler: OperationHdler,
+		auth:           auth,
 	}
 }
