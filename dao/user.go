@@ -6,10 +6,11 @@ import (
 )
 
 type User struct {
-	ID       int    `gorm:"column:id; primary_key; not null" json:"id"`
-	Username string `gorm:"column:username; unique" json:"username"`
-	Email    string `gorm:"column:email; unique" json:"email"`
-	Password string `gorm:"column:password" json:"password"`
+	ID        int         `gorm:"column:id; primary_key; not null" json:"id"`
+	Operation []Operation `gorm:"foreignKey:UserID"`
+	Username  string      `gorm:"column:username; unique" json:"username"`
+	Email     string      `gorm:"column:email; unique" json:"email"`
+	Password  string      `gorm:"column:password" json:"password"`
 	BaseModel
 }
 
