@@ -16,7 +16,8 @@ func Init(init *config.Initialization) *gin.Engine {
 	router.Use(middleware.ErrorHandler())
 
 	api := router.Group("/api")
-	routes.RegisterUserRoutes(api)
+	routes.UserRoutes(api)
+	routes.OperationRoutes(api)
 
 	return router
 }
