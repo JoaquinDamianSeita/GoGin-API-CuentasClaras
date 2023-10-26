@@ -1,11 +1,11 @@
 package integration_tests
 
 import (
-	"GoGin-API-Base/api"
-	"GoGin-API-Base/api/auth"
-	"GoGin-API-Base/config"
-	"GoGin-API-Base/dao"
-	"GoGin-API-Base/repository"
+	"GoGin-API-CuentasClaras/api"
+	"GoGin-API-CuentasClaras/api/auth"
+	"GoGin-API-CuentasClaras/config"
+	"GoGin-API-CuentasClaras/dao"
+	"GoGin-API-CuentasClaras/repository"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -14,7 +14,7 @@ import (
 	"strings"
 	"testing"
 
-	testhelpers "GoGin-API-Base/test_helpers"
+	testhelpers "GoGin-API-CuentasClaras/test_helpers"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -230,7 +230,7 @@ func TestUsersIntegration_Current_ValidRequest(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.Name, func(t *testing.T) {
 			request, _ := http.NewRequest("GET", "/api/users/current", strings.NewReader(tt.Params))
-			request.Header.Set("Authorization", "Bearer " + token)
+			request.Header.Set("Authorization", "Bearer "+token)
 
 			responseRecorder := httptest.NewRecorder()
 			router.ServeHTTP(responseRecorder, request)

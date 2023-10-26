@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"GoGin-API-Base/dao"
+	"GoGin-API-CuentasClaras/dao"
 
 	"gorm.io/gorm"
 )

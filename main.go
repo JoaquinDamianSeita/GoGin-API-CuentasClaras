@@ -1,8 +1,8 @@
 package main
 
 import (
-	"GoGin-API-Base/api"
-	"GoGin-API-Base/config"
+	"GoGin-API-CuentasClaras/api"
+	"GoGin-API-CuentasClaras/config"
 	"os"
 
 	"github.com/joho/godotenv"

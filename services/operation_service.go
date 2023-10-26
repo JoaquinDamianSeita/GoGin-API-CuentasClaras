@@ -1,8 +1,8 @@
 package services
 
 import (
-	dao "GoGin-API-Base/dao"
-	"GoGin-API-Base/repository"
+	dao "GoGin-API-CuentasClaras/dao"
+	"GoGin-API-CuentasClaras/repository"
 	"net/http"
 	"strconv"
 	"time"

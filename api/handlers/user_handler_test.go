@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"GoGin-API-Base/dao"
-	testhelpers "GoGin-API-Base/test_helpers"
+	"GoGin-API-CuentasClaras/dao"
+	testhelpers "GoGin-API-CuentasClaras/test_helpers"
 	"net/http"
 	"strconv"
 	"testing"

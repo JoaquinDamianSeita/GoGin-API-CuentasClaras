@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"GoGin-API-Base/services"
+	"GoGin-API-CuentasClaras/services"
 
 	"github.com/gin-gonic/gin"
 )

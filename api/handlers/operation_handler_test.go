@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	testhelpers "GoGin-API-Base/test_helpers"
+	testhelpers "GoGin-API-CuentasClaras/test_helpers"
 	"net/http"
 	"strconv"
 	"testing"

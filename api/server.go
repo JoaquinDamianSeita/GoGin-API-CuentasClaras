@@ -1,9 +1,9 @@
 package api
 
 import (
-	"GoGin-API-Base/api/middleware"
-	"GoGin-API-Base/api/routes"
-	"GoGin-API-Base/config"
+	"GoGin-API-CuentasClaras/api/middleware"
+	"GoGin-API-CuentasClaras/api/routes"
+	"GoGin-API-CuentasClaras/config"
 
 	"github.com/gin-gonic/gin"
 )

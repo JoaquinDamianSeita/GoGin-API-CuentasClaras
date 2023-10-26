@@ -1,9 +1,9 @@
 package services
 
 import (
-	"GoGin-API-Base/api/auth"
-	dao "GoGin-API-Base/dao"
-	"GoGin-API-Base/repository"
+	"GoGin-API-CuentasClaras/api/auth"
+	dao "GoGin-API-CuentasClaras/dao"
+	"GoGin-API-CuentasClaras/repository"
 	"fmt"
 	"net/http"
 	"strconv"
