@@ -9,15 +9,14 @@ import (
 )
 
 func Init(init *config.Initialization) *gin.Engine {
-
 	router := gin.New()
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
 	router.Use(middleware.ErrorHandler())
 
 	api := router.Group("/api")
-	routes.UserRoutes(api)
-	routes.OperationRoutes(api)
+	routes.UserRoutes(api, init)
+	routes.OperationRoutes(api, init)
 
 	return router
 }

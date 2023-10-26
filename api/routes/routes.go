@@ -7,9 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var initConfig *config.Initialization = config.Init()
-
-func UserRoutes(router *gin.RouterGroup) {
+func UserRoutes(router *gin.RouterGroup, initConfig *config.Initialization) {
 	user := router.Group("/users")
 	{
 		user.POST("", initConfig.UserHdler.RegisterUser)
@@ -18,7 +16,7 @@ func UserRoutes(router *gin.RouterGroup) {
 	}
 }
 
-func OperationRoutes(router *gin.RouterGroup) {
+func OperationRoutes(router *gin.RouterGroup, initConfig *config.Initialization) {
 	operation := router.Group("/operations")
 	{
 		operation.GET("", middleware.AuthMiddleware(), initConfig.OperationHdler.Index)
