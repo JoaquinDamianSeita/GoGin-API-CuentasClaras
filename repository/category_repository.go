@@ -8,6 +8,7 @@ import (
 
 type CategoryRepository interface {
 	FindCategoryByOperation(operation dao.Operation) (dao.Category, error)
+	Save(category *dao.Category) (dao.Category, error)
 }
 
 type CategoryRepositoryImpl struct {
@@ -17,6 +18,11 @@ type CategoryRepositoryImpl struct {
 func (u CategoryRepositoryImpl) FindCategoryByOperation(operation dao.Operation) (dao.Category, error) {
 	u.db.Preload("Category").First(&operation)
 	return operation.Category, nil
+}
+
+func (u CategoryRepositoryImpl) Save(category *dao.Category) (dao.Category, error) {
+	err := u.db.Create(&category).Error
+	return *category, err
 }
 
 func CategoryRepositoryInit(db *gorm.DB) *CategoryRepositoryImpl {
