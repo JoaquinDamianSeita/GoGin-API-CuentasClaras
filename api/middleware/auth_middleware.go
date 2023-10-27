@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"GoGin-API-Base/api/auth"
+	"GoGin-API-CuentasClaras/api/auth"
 	"net/http"
 	"strings"
 

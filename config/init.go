@@ -1,10 +1,10 @@
 package config
 
 import (
-	"GoGin-API-Base/api/auth"
-	"GoGin-API-Base/api/handlers"
-	"GoGin-API-Base/repository"
-	"GoGin-API-Base/services"
+	"GoGin-API-CuentasClaras/api/auth"
+	"GoGin-API-CuentasClaras/api/handlers"
+	"GoGin-API-CuentasClaras/repository"
+	"GoGin-API-CuentasClaras/services"
 )
 
 type Initialization struct {

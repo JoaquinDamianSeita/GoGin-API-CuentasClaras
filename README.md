@@ -1,4 +1,4 @@
-# GoGin-API-Base
+# GoGin-API-CuentasClaras
 
 run with:
 
@@ -20,7 +20,7 @@ go clean -testcache
 
 Generate wire file:
 ``` bash
-wire gen GoGin-API-Base/config
+wire gen GoGin-API-CuentasClaras/config
 ```
 
 .env:
@@ -31,7 +31,7 @@ wire gen GoGin-API-Base/config
 PORT=8080
 
 # Application
-APPLICATION_NAME=GoGin-API-Base
+APPLICATION_NAME=GoGin-API-CuentasClaras
 
 # Database
 DB_DSN="host=HOST user=USER password=PASSWORD dbname=DBNAME port=PORT"

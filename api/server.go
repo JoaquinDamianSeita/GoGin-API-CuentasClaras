@@ -1,22 +1,27 @@
 package api
 
 import (
-	"GoGin-API-Base/api/middleware"
-	"GoGin-API-Base/api/routes"
-	"GoGin-API-Base/config"
+	"GoGin-API-CuentasClaras/api/middleware"
+	"GoGin-API-CuentasClaras/api/routes"
+	"GoGin-API-CuentasClaras/config"
+	"os"
 
 	"github.com/gin-gonic/gin"
 )
 
 func Init(init *config.Initialization) *gin.Engine {
-
+	apiMode := os.Getenv("ENVIROMENT")
+	if apiMode == "production" || apiMode == "test" {
+		gin.SetMode(gin.ReleaseMode)
+	}
 	router := gin.New()
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
 	router.Use(middleware.ErrorHandler())
 
 	api := router.Group("/api")
-	routes.RegisterUserRoutes(api)
+	routes.UserRoutes(api, init)
+	routes.OperationRoutes(api, init)
 
 	return router
 }

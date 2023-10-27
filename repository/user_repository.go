@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"GoGin-API-Base/dao"
+	"GoGin-API-CuentasClaras/dao"
 	"errors"
 
 	"github.com/jackc/pgx/v5/pgconn"

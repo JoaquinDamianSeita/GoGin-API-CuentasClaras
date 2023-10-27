@@ -1,9 +1,9 @@
 package services
 
 import (
-	auth "GoGin-API-Base/api/auth"
-	dao "GoGin-API-Base/dao"
-	testhelpers "GoGin-API-Base/test_helpers"
+	auth "GoGin-API-CuentasClaras/api/auth"
+	dao "GoGin-API-CuentasClaras/dao"
+	testhelpers "GoGin-API-CuentasClaras/test_helpers"
 	"errors"
 	"net/http"
 	"testing"

@@ -1,65 +1,13 @@
 package integration_tests
 
 import (
-	"GoGin-API-Base/api"
-	"GoGin-API-Base/api/auth"
-	"GoGin-API-Base/config"
-	"GoGin-API-Base/dao"
-	"GoGin-API-Base/repository"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"os"
-	"strconv"
 	"strings"
 	"testing"
 
-	testhelpers "GoGin-API-Base/test_helpers"
-
-	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
-	"gorm.io/gorm"
+	testhelpers "GoGin-API-CuentasClaras/test_helpers"
 )
-
-var db *gorm.DB
-var token string
-
-func TestMain(m *testing.M) {
-	db = InitTest()
-	defer cleanDB()
-	exitCode := m.Run()
-	os.Exit(exitCode)
-}
-
-func InitTest() *gorm.DB {
-	godotenv.Load("../.env")
-	os.Setenv("DB_DSN", os.Getenv("DB_DSN_TEST"))
-
-	return config.ConnectToDB()
-}
-
-func cleanDB() {
-	db.Exec("DELETE FROM users")
-	fmt.Println("Database cleaned.")
-}
-
-func setupTest() *gin.Engine {
-	fmt.Println("Before Test Execution.")
-	userRepositoryImpl := repository.UserRepositoryInit(db)
-	user, _ := userRepositoryImpl.Save(&dao.User{
-		Username: "pedro.fuentes",
-		Email:    "pedro.fuentes@gmail.com",
-		Password: "password123",
-	})
-	authService := auth.AuthInit()
-	_, token, _ = authService.GenerateJWT(fmt.Sprintf(strconv.Itoa(user.ID)))
-	init := config.Init()
-	return api.Init(init)
-}
-
-func teardownTest() {
-	cleanDB()
-}
 
 func TestUsersIntegration_Login_ValidRequest(t *testing.T) {
 	router := setupTest()
@@ -230,7 +178,7 @@ func TestUsersIntegration_Current_ValidRequest(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.Name, func(t *testing.T) {
 			request, _ := http.NewRequest("GET", "/api/users/current", strings.NewReader(tt.Params))
-			request.Header.Set("Authorization", "Bearer " + token)
+			request.Header.Set("Authorization", "Bearer "+token)
 
 			responseRecorder := httptest.NewRecorder()
 			router.ServeHTTP(responseRecorder, request)
