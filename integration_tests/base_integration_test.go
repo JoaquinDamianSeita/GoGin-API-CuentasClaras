@@ -59,15 +59,17 @@ func setupTest() *gin.Engine {
 		Password: "password123",
 	})
 	category, _ := categoryRepositoryImpl.Save(&dao.Category{
-		Name:  "Work",
-		Color: "#fdg123",
+		Name:        "Work",
+		Color:       "#fdg123",
+		Description: "Work",
 	})
 	operationRepositoryImpl.Save(&dao.Operation{
-		UserID:   uint(user.ID),
-		Category: category,
-		Type:     "income",
-		Amount:   1200.5,
-		Date:     date,
+		UserID:      uint(user.ID),
+		Category:    category,
+		Type:        "income",
+		Amount:      1200.5,
+		Date:        date,
+		Description: "Salario",
 	})
 	authService = auth.AuthInit()
 	_, token, _ = authService.GenerateJWT(fmt.Sprintf(strconv.Itoa(user.ID)))

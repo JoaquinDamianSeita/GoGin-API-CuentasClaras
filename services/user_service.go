@@ -6,7 +6,6 @@ import (
 	"GoGin-API-CuentasClaras/repository"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -75,9 +74,7 @@ func (u UserServiceImpl) LoginUser(c *gin.Context) {
 }
 
 func (u UserServiceImpl) CurrentUser(c *gin.Context) {
-	var user dao.User
-	userID, _ := strconv.Atoi(c.GetString("user_id"))
-	user, recordError := u.userRepository.FindUserById(userID)
+	user, recordError := RetrieveCurrentUser(u.userRepository, c.GetString("user_id"))
 
 	if recordError != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Not authorized"})
