@@ -65,7 +65,7 @@ func (u OperationServiceImpl) Index(c *gin.Context) {
 			ID:     operation.ID,
 			Type:   operation.Type,
 			Amount: operation.Amount,
-			Date:   operation.Date,
+			Date:   operation.Date.In(utcLocation),
 			Category: TransformedCategory{
 				Name:  category.Name,
 				Color: category.Color,
@@ -97,7 +97,7 @@ func (u OperationServiceImpl) Show(c *gin.Context) {
 		ID:          operation.ID,
 		Type:        operation.Type,
 		Amount:      operation.Amount,
-		Date:        operation.Date,
+		Date:        operation.Date.In(utcLocation),
 		Description: operation.Description,
 		Category: TransformedShowCategory{
 			Name:        operation.Category.Name,

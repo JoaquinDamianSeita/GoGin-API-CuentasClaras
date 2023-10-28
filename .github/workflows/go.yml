@@ -16,7 +16,6 @@ jobs:
     env:
       DB_DSN_TEST: "host=127.0.0.1 user=root password=root dbname=gogin-api-cuentas-claras-test port=5432"
       ENVIROMENT: "test"
-      TZ: "Americas/Argentina"
 
     services:
       postgres:

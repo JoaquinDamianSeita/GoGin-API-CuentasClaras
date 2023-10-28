@@ -104,7 +104,7 @@ func TestOperationServiceImpl_Index(t *testing.T) {
 			Name:         "when the user has operations",
 			Params:       "",
 			ExpectedCode: http.StatusOK,
-			ExpectedBody: "[{\"id\":1,\"type\":\"income\",\"amount\":1200.5,\"date\":\"2023-10-23T21:33:03.73297-03:00\",\"category\":{\"name\":\"Work\",\"color\":\"#fdg123\"}}]",
+			ExpectedBody: "[{\"id\":1,\"type\":\"income\",\"amount\":1200.5,\"date\":\"2023-10-24T00:33:03.73297Z\",\"category\":{\"name\":\"Work\",\"color\":\"#fdg123\"}}]",
 		},
 		{
 			Name:         "when the user has no operations",
@@ -150,7 +150,7 @@ func TestOperationServiceImpl_Show(t *testing.T) {
 			Name:         "when the operation is found",
 			Params:       "",
 			ExpectedCode: http.StatusOK,
-			ExpectedBody: "{\"id\":1,\"type\":\"income\",\"amount\":1200.5,\"date\":\"2023-10-23T21:33:03.73297-03:00\",\"category\":{\"name\":\"Work\",\"color\":\"#fdg123\",\"description\":\"Work\"},\"description\":\"Salario\"}",
+			ExpectedBody: "{\"id\":1,\"type\":\"income\",\"amount\":1200.5,\"date\":\"2023-10-24T00:33:03.73297Z\",\"category\":{\"name\":\"Work\",\"color\":\"#fdg123\",\"description\":\"Work\"},\"description\":\"Salario\"}",
 		},
 		{
 			Name:         "when the operation is not found",
