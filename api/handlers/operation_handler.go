@@ -8,6 +8,7 @@ import (
 
 type OperationHandler interface {
 	Index(c *gin.Context)
+	Show(c *gin.Context)
 }
 
 type OperationHandlerImpl struct {
@@ -16,6 +17,10 @@ type OperationHandlerImpl struct {
 
 func (u OperationHandlerImpl) Index(c *gin.Context) {
 	u.svc.Index(c)
+}
+
+func (u OperationHandlerImpl) Show(c *gin.Context) {
+	u.svc.Show(c)
 }
 
 func OperationHandlerInit(operationService services.OperationService) *OperationHandlerImpl {

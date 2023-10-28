@@ -20,5 +20,6 @@ func OperationRoutes(router *gin.RouterGroup, initConfig *config.Initialization)
 	operation := router.Group("/operations")
 	{
 		operation.GET("", middleware.AuthMiddleware(), initConfig.OperationHdler.Index)
+		operation.GET("/:id", middleware.AuthMiddleware(), initConfig.OperationHdler.Show)
 	}
 }

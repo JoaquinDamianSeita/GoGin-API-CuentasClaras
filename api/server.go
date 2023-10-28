@@ -10,7 +10,7 @@ import (
 )
 
 func Init(init *config.Initialization) *gin.Engine {
-	apiMode := os.Getenv("ENVIROMENT")
+	apiMode := os.Getenv("ENVIRONMENT")
 	if apiMode == "production" || apiMode == "test" {
 		gin.SetMode(gin.ReleaseMode)
 	}

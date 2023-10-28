@@ -47,7 +47,9 @@ func setupTest() *gin.Engine {
 	userRepositoryImpl := repository.UserRepositoryInit(db)
 	categoryRepositoryImpl := repository.CategoryRepositoryInit(db)
 	operationRepositoryImpl := repository.OperationRepositoryInit(db)
-	date, _ := time.Parse(time.RFC3339, "2023-10-23T21:33:03.73297-03:00")
+	date, _ := time.Parse(time.RFC3339, "2023-10-23T21:33:03.73297Z")
+	utcLocation, _ := time.LoadLocation("UTC")
+	dateInUTC := date.In(utcLocation)
 	user, _ := userRepositoryImpl.Save(&dao.User{
 		Username: "pedro.fuentes",
 		Email:    "pedro.fuentes@gmail.com",
@@ -59,15 +61,17 @@ func setupTest() *gin.Engine {
 		Password: "password123",
 	})
 	category, _ := categoryRepositoryImpl.Save(&dao.Category{
-		Name:  "Work",
-		Color: "#fdg123",
+		Name:        "Work",
+		Color:       "#fdg123",
+		Description: "Work",
 	})
 	operationRepositoryImpl.Save(&dao.Operation{
-		UserID:   uint(user.ID),
-		Category: category,
-		Type:     "income",
-		Amount:   1200.5,
-		Date:     date,
+		UserID:      uint(user.ID),
+		Category:    category,
+		Type:        "income",
+		Amount:      1200.5,
+		Date:        dateInUTC,
+		Description: "Salario",
 	})
 	authService = auth.AuthInit()
 	_, token, _ = authService.GenerateJWT(fmt.Sprintf(strconv.Itoa(user.ID)))
