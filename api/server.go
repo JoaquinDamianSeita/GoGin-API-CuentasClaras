@@ -20,6 +20,7 @@ func Init(init *config.Initialization) *gin.Engine {
 	router.Use(middleware.ErrorHandler())
 
 	api := router.Group("/api")
+	routes.HealthRoutes(api, init)
 	routes.UserRoutes(api, init)
 	routes.OperationRoutes(api, init)
 
