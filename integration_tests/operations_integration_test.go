@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	testhelpers "GoGin-API-CuentasClaras/test_helpers"
 )
@@ -116,6 +117,88 @@ func TestOperationsIntegration_Show_InvalidRequest(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.Name, func(t *testing.T) {
 			request, _ := http.NewRequest("GET", "/api/operations/2", strings.NewReader(tt.Params))
+			request.Header.Set("Content-Type", "application/json")
+			request.Header.Set("Authorization", "Bearer "+token)
+
+			if tt.Name == "when the user does not exist" {
+				_, anotherToken, _ := authService.GenerateJWT("3")
+				request.Header.Set("Authorization", "Bearer "+anotherToken)
+			}
+
+			responseRecorder := httptest.NewRecorder()
+			router.ServeHTTP(responseRecorder, request)
+
+			testhelpers.AssertExpectedCodeAndBodyResponse(t, tt, responseRecorder)
+		})
+	}
+	teardownTest()
+}
+
+func TestOperationsIntegration_Create_ValidRequest(t *testing.T) {
+	router := setupTest()
+	validDate := time.Now().Add(-time.Hour).Format(time.RFC3339)
+	var tests = []testhelpers.TestStructure{
+		{
+			Name:         "when the operation is created successfully",
+			Params:       `{"type": "income", "amount": 200.50, "date": "` + validDate + `", "description": "Payment for services", "category_id": "1"}`,
+			ExpectedCode: http.StatusCreated,
+			ExpectedBody: "{\"message\":\"Operation successfully created.\"}",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.Name, func(t *testing.T) {
+			request, _ := http.NewRequest("POST", "/api/operations", strings.NewReader(tt.Params))
+			request.Header.Set("Content-Type", "application/json")
+			request.Header.Set("Authorization", "Bearer "+token)
+
+			responseRecorder := httptest.NewRecorder()
+			router.ServeHTTP(responseRecorder, request)
+
+			testhelpers.AssertExpectedCodeAndBodyResponse(t, tt, responseRecorder)
+		})
+	}
+	teardownTest()
+}
+
+func TestOperationsIntegration_Create_InvalidRequest(t *testing.T) {
+	router := setupTest()
+	validDate := time.Now().Add(time.Hour).Format(time.RFC3339)
+	invalidDate := time.Now().Add(time.Hour).Format(time.RFC3339)
+	var tests = []testhelpers.TestStructure{
+		{
+			Name:         "when the operation has invalid type",
+			Params:       `{"type": "invalid", "amount": 200.50, "date": "` + validDate + `", "description": "Payment for services", "category_id": "1"}`,
+			ExpectedCode: http.StatusBadRequest,
+			ExpectedBody: "{\"error\":\"Invalid parameters.\"}",
+		},
+		{
+			Name:         "when the operation has invalid amount",
+			Params:       `{"type": "income", "amount": 0.0, "date": "` + validDate + `", "description": "Payment for services", "category_id": "1"}`,
+			ExpectedCode: http.StatusBadRequest,
+			ExpectedBody: "{\"error\":\"Invalid parameters.\"}",
+		},
+		{
+			Name:         "when the operation has invalid date",
+			Params:       `{"type": "income", "amount": 200.50, "date": "` + invalidDate + `", "description": "Payment for services", "category_id": "1"}`,
+			ExpectedCode: http.StatusBadRequest,
+			ExpectedBody: "{\"error\":\"Invalid parameters.\"}",
+		},
+		{
+			Name:         "when the operation has invalid category ID",
+			Params:       `{"type": "income", "amount": 200.50, "date": "` + validDate + `", "description": "Payment for services", "category_id": "2"}`,
+			ExpectedCode: http.StatusBadRequest,
+			ExpectedBody: "{\"error\":\"Invalid parameters.\"}",
+		},
+		{
+			Name:         "when the user does not exist",
+			Params:       `{"type": "income", "amount": 200.50, "date": "` + validDate + `", "description": "Payment for services", "category_id": "1"}`,
+			ExpectedCode: http.StatusUnauthorized,
+			ExpectedBody: "{\"error\":\"Not authorized\"}",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.Name, func(t *testing.T) {
+			request, _ := http.NewRequest("POST", "/api/operations", strings.NewReader(tt.Params))
 			request.Header.Set("Content-Type", "application/json")
 			request.Header.Set("Authorization", "Bearer "+token)
 

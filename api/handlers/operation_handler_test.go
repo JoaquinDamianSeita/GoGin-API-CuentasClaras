@@ -73,6 +73,34 @@ func (m *MockOperationService) Show(c *gin.Context) {
 	}
 }
 
+func (m *MockOperationService) Create(c *gin.Context) {
+	userID, _ := strconv.Atoi(c.GetString("user_id"))
+
+	if userID == 2 {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Not authorized"})
+		return
+	}
+
+	var createOperationRequest services.CreateOperationRequest
+
+	c.ShouldBindJSON(&createOperationRequest)
+	if createOperationRequest.Type == "invalid" ||
+		createOperationRequest.Amount == 0.0 ||
+		createOperationRequest.Date == "2023-11-01T00:00:00Z" ||
+		createOperationRequest.CategoryID == "2" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid parameters."})
+		return
+	}
+
+	if createOperationRequest.Description == "Payment for work" {
+		c.AbortWithStatusJSON(
+			http.StatusUnprocessableEntity, gin.H{"error": "An error occurred in the creation of the operation."})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"message": "Operation successfully created."})
+}
+
 func TestOperationHandlerImpl_Index(t *testing.T) {
 	operationService := &MockOperationService{}
 	operationHandler := OperationHandlerInit(operationService)
@@ -165,6 +193,74 @@ func TestOperationHandlerImpl_Show(t *testing.T) {
 			}
 
 			operationHandler.Show(ctx)
+
+			testhelpers.AssertExpectedCodeAndBodyResponse(t, tt, responseRecorder)
+		})
+	}
+}
+
+func TestOperationHandlerImpl_Create(t *testing.T) {
+	operationService := &MockOperationService{}
+	operationHandler := OperationHandlerInit(operationService)
+	serviceUri := "/api/operations"
+
+	var tests = []testhelpers.TestStructure{
+		{
+			Name:         "when the operation is created successfully",
+			Params:       `{"type": "income", "amount": 200.50, "date": "2023-11-02T23:07:00Z", "description": "Payment for services", "category_id": "1"}`,
+			ExpectedCode: http.StatusCreated,
+			ExpectedBody: "{\"message\":\"Operation successfully created.\"}",
+		},
+		{
+			Name:         "when the operation has invalid type",
+			Params:       `{"type": "invalid", "amount": 200.50, "date": "2023-11-02T23:07:00Z", "description": "Payment for services", "category_id": "1"}`,
+			ExpectedCode: http.StatusBadRequest,
+			ExpectedBody: "{\"error\":\"Invalid parameters.\"}",
+		},
+		{
+			Name:         "when the operation has invalid amount",
+			Params:       `{"type": "income", "amount": 0.0, "date": "2023-11-02T23:07:00Z", "description": "Payment for services", "category_id": "1"}`,
+			ExpectedCode: http.StatusBadRequest,
+			ExpectedBody: "{\"error\":\"Invalid parameters.\"}",
+		},
+		{
+			Name:         "when the operation has invalid date",
+			Params:       `{"type": "income", "amount": 200.50, "date": "2023-11-01T00:00:00Z", "description": "Payment for services", "category_id": "1"}`,
+			ExpectedCode: http.StatusBadRequest,
+			ExpectedBody: "{\"error\":\"Invalid parameters.\"}",
+		},
+		{
+			Name:         "when the operation has invalid category ID",
+			Params:       `{"type": "income", "amount": 200.50, "date": "2023-11-02T23:07:00Z", "description": "Payment for services", "category_id": "2"}`,
+			ExpectedCode: http.StatusBadRequest,
+			ExpectedBody: "{\"error\":\"Invalid parameters.\"}",
+		},
+		{
+			Name:         "when there is an error in the creation of the operation",
+			Params:       `{"type": "expense", "amount": 200.50, "date": "2023-11-02T23:07:00Z", "description": "Payment for work", "category_id": "1"}`,
+			ExpectedCode: http.StatusUnprocessableEntity,
+			ExpectedBody: "{\"error\":\"An error occurred in the creation of the operation.\"}",
+		},
+		{
+			Name:         "when the user does not exist",
+			Params:       `{"type": "income", "amount": 200.50, "date": "2023-11-02T23:07:00Z", "description": "Payment for services", "category_id": "1"}`,
+			ExpectedCode: http.StatusUnauthorized,
+			ExpectedBody: "{\"error\":\"Not authorized\"}",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.Name, func(t *testing.T) {
+			user_id := "1"
+
+			if tt.Name == "when the user does not exist" {
+				user_id = "2"
+			}
+
+			ctx, responseRecorder := testhelpers.MockPostRequest(tt.Params, serviceUri)
+
+			ctx.Set("user_id", user_id)
+
+			operationHandler.Create(ctx)
 
 			testhelpers.AssertExpectedCodeAndBodyResponse(t, tt, responseRecorder)
 		})
