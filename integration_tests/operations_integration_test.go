@@ -136,7 +136,7 @@ func TestOperationsIntegration_Show_InvalidRequest(t *testing.T) {
 
 func TestOperationsIntegration_Create_ValidRequest(t *testing.T) {
 	router := setupTest()
-	validDate := time.Now().Add(time.Hour).Format(time.RFC3339)
+	validDate := time.Now().Add(-time.Hour).Format(time.RFC3339)
 	var tests = []testhelpers.TestStructure{
 		{
 			Name:         "when the operation is created successfully",
@@ -163,7 +163,7 @@ func TestOperationsIntegration_Create_ValidRequest(t *testing.T) {
 func TestOperationsIntegration_Create_InvalidRequest(t *testing.T) {
 	router := setupTest()
 	validDate := time.Now().Add(time.Hour).Format(time.RFC3339)
-	invalidDate := time.Now().Add(-time.Hour).Format(time.RFC3339)
+	invalidDate := time.Now().Add(time.Hour).Format(time.RFC3339)
 	var tests = []testhelpers.TestStructure{
 		{
 			Name:         "when the operation has invalid type",

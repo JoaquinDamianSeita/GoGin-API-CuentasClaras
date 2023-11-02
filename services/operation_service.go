@@ -174,7 +174,7 @@ func invalidDate() bool {
 		return true
 	}
 	parsedDate, err := time.Parse(time.RFC3339, createOperationRequest.Date)
-	return err != nil || parsedDate.Before(time.Now())
+	return err != nil || parsedDate.After(time.Now())
 }
 
 func invalidCategoryID(categoryRepository repository.CategoryRepository) bool {

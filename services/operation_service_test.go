@@ -210,8 +210,8 @@ func TestOperationServiceImpl_Create(t *testing.T) {
 	categoryRepository := &MockCategoryRepositoryOperations{}
 	operationService := OperationServiceInit(userRepository, operationRepository, categoryRepository)
 	serviceUri := "/api/operations"
-	validDate := time.Now().Add(time.Hour).Format(time.RFC3339)
-	invalidDate := time.Now().Add(-time.Hour).Format(time.RFC3339)
+	invalidDate := time.Now().Add(time.Hour).Format(time.RFC3339)
+	validDate := time.Now().Add(-time.Hour).Format(time.RFC3339)
 
 	var tests = []testhelpers.TestStructure{
 		{
