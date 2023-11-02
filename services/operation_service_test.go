@@ -79,6 +79,9 @@ func (u MockOperationRepositoryOperations) FindOperationByUserAndId(user dao.Use
 }
 
 func (u MockOperationRepositoryOperations) Save(operation *dao.Operation) (dao.Operation, error) {
+	if operation.Description == "Payment for work" {
+		return dao.Operation{}, errors.New("Invalid operation.")
+	}
 	return dao.Operation{}, nil
 }
 
@@ -90,6 +93,13 @@ func (u MockCategoryRepositoryOperations) FindCategoryByOperation(operation dao.
 
 func (u MockCategoryRepositoryOperations) Save(category *dao.Category) (dao.Category, error) {
 	return dao.Category{}, nil
+}
+
+func (u MockCategoryRepositoryOperations) FindCategoryById(id int) (dao.Category, error) {
+	if id == 1 {
+		return dao.Category{}, nil
+	}
+	return dao.Category{}, errors.New("Category not found.")
 }
 
 func TestOperationServiceImpl_Index(t *testing.T) {
@@ -188,6 +198,78 @@ func TestOperationServiceImpl_Show(t *testing.T) {
 			}
 
 			operationService.Show(ctx)
+
+			testhelpers.AssertExpectedCodeAndBodyResponse(t, tt, responseRecorder)
+		})
+	}
+}
+
+func TestOperationServiceImpl_Create(t *testing.T) {
+	userRepository := &MockUserRepositoryOperations{}
+	operationRepository := &MockOperationRepositoryOperations{}
+	categoryRepository := &MockCategoryRepositoryOperations{}
+	operationService := OperationServiceInit(userRepository, operationRepository, categoryRepository)
+	serviceUri := "/api/operations"
+	validDate := time.Now().Add(time.Hour).Format(time.RFC3339)
+	invalidDate := time.Now().Add(-time.Hour).Format(time.RFC3339)
+
+	var tests = []testhelpers.TestStructure{
+		{
+			Name:         "when the operation is created successfully",
+			Params:       `{"type": "income", "amount": 200.50, "date": "` + validDate + `", "description": "Payment for services", "category_id": "1"}`,
+			ExpectedCode: http.StatusCreated,
+			ExpectedBody: "{\"message\":\"Operation successfully created.\"}",
+		},
+		{
+			Name:         "when the operation has invalid type",
+			Params:       `{"type": "invalid", "amount": 200.50, "date": "` + validDate + `", "description": "Payment for services", "category_id": "1"}`,
+			ExpectedCode: http.StatusBadRequest,
+			ExpectedBody: "{\"error\":\"Invalid parameters.\"}",
+		},
+		{
+			Name:         "when the operation has invalid amount",
+			Params:       `{"type": "income", "amount": 0.0, "date": "` + validDate + `", "description": "Payment for services", "category_id": "1"}`,
+			ExpectedCode: http.StatusBadRequest,
+			ExpectedBody: "{\"error\":\"Invalid parameters.\"}",
+		},
+		{
+			Name:         "when the operation has invalid date",
+			Params:       `{"type": "income", "amount": 200.50, "date": "` + invalidDate + `", "description": "Payment for services", "category_id": "1"}`,
+			ExpectedCode: http.StatusBadRequest,
+			ExpectedBody: "{\"error\":\"Invalid parameters.\"}",
+		},
+		{
+			Name:         "when the operation has invalid category ID",
+			Params:       `{"type": "income", "amount": 200.50, "date": "` + validDate + `", "description": "Payment for services", "category_id": "2"}`,
+			ExpectedCode: http.StatusBadRequest,
+			ExpectedBody: "{\"error\":\"Invalid parameters.\"}",
+		},
+		{
+			Name:         "when there is an error in the creation of the operation",
+			Params:       `{"type": "expense", "amount": 200.50, "date": "` + validDate + `", "description": "Payment for work", "category_id": "1"}`,
+			ExpectedCode: http.StatusUnprocessableEntity,
+			ExpectedBody: "{\"error\":\"An error occurred in the creation of the operation.\"}",
+		},
+		{
+			Name:         "when the user does not exist",
+			Params:       `{"type": "income", "amount": 200.50, "date": "` + validDate + `", "description": "Payment for services", "category_id": "1"}`,
+			ExpectedCode: http.StatusUnauthorized,
+			ExpectedBody: "{\"error\":\"Not authorized\"}",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.Name, func(t *testing.T) {
+			user_id := "1"
+
+			if tt.Name == "when the user does not exist" {
+				user_id = "3"
+			}
+
+			ctx, responseRecorder := testhelpers.MockPostRequest(tt.Params, serviceUri)
+
+			ctx.Set("user_id", user_id)
+
+			operationService.Create(ctx)
 
 			testhelpers.AssertExpectedCodeAndBodyResponse(t, tt, responseRecorder)
 		})

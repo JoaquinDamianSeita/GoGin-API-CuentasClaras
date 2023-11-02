@@ -29,5 +29,6 @@ func OperationRoutes(router *gin.RouterGroup, initConfig *config.Initialization)
 	{
 		operation.GET("", middleware.AuthMiddleware(), initConfig.OperationHdler.Index)
 		operation.GET("/:id", middleware.AuthMiddleware(), initConfig.OperationHdler.Show)
+		operation.POST("", middleware.AuthMiddleware(), initConfig.OperationHdler.Create)
 	}
 }

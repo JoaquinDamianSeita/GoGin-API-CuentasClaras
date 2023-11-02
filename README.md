@@ -32,6 +32,7 @@ PORT=8080
 
 # Application
 APPLICATION_NAME=GoGin-API-CuentasClaras
+ENVIRONMENT=development | test | production
 
 # Database
 DB_DSN="host=HOST user=USER password=PASSWORD dbname=DBNAME port=PORT"
