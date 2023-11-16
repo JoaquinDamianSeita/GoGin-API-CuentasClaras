@@ -29,11 +29,19 @@ func (u UserHandlerImpl) RegisterUser(ctx *gin.Context) {
 }
 
 func (u UserHandlerImpl) LoginUser(c *gin.Context) {
-	u.svc.LoginUser(c)
+	var loginUserRequest dto.LoginRequest
+	validationError := c.ShouldBindJSON(&loginUserRequest)
+	if validationError != nil || loginUserRequest.Email == "" || loginUserRequest.Password == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid parameters."})
+		return
+	}
+	code, response := u.svc.LoginUser(loginUserRequest)
+	c.JSON(code, response)
 }
 
 func (u UserHandlerImpl) CurrentUser(c *gin.Context) {
-	u.svc.CurrentUser(c)
+	code, response := u.svc.CurrentUser(c.GetString("user_id"))
+	c.JSON(code, response)
 }
 
 func UserHandlerInit(userService services.UserService) *UserHandlerImpl {

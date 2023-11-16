@@ -110,30 +110,6 @@ func TestUserHandlerImpl_LoginUser(t *testing.T) {
 			ExpectedBody: "{\"expires_in\":3600,\"token\":\"token\"}",
 		},
 		{
-			Name:         "when email is not present",
-			Params:       `{"password": "password123"}`,
-			ExpectedCode: http.StatusBadRequest,
-			ExpectedBody: "{\"error\":\"Invalid parameters.\"}",
-		},
-		{
-			Name:         "when email is empty",
-			Params:       `{"email": "", "password": "password123"}`,
-			ExpectedCode: http.StatusBadRequest,
-			ExpectedBody: "{\"error\":\"Invalid parameters.\"}",
-		},
-		{
-			Name:         "when password is not present",
-			Params:       `{"email": "test.user@example.com"}`,
-			ExpectedCode: http.StatusBadRequest,
-			ExpectedBody: "{\"error\":\"Invalid parameters.\"}",
-		},
-		{
-			Name:         "when password is empty",
-			Params:       `{"email": "test.user@example.com", "password": ""}`,
-			ExpectedCode: http.StatusBadRequest,
-			ExpectedBody: "{\"error\":\"Invalid parameters.\"}",
-		},
-		{
 			Name:         "with invalid email",
 			Params:       `{"email": "invalid.user@example.com", "password": "password123"}`,
 			ExpectedCode: http.StatusUnauthorized,
@@ -148,11 +124,13 @@ func TestUserHandlerImpl_LoginUser(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.Name, func(t *testing.T) {
-			ctx, responseRecorder := testhelpers.MockPostRequest(tt.Params, serviceUri)
+			ctx, _ := testhelpers.MockPostRequest(tt.Params, serviceUri)
+			var loginUserRequest dto.LoginRequest
+			ctx.ShouldBindJSON(&loginUserRequest)
 
-			userService.LoginUser(ctx)
+			code, response := userService.LoginUser(loginUserRequest)
 
-			testhelpers.AssertExpectedCodeAndBodyResponse(t, tt, responseRecorder)
+			testhelpers.AssertExpectedCodeAndResponseService(t, tt, code, response)
 		})
 	}
 }
@@ -179,7 +157,7 @@ func TestUserHandlerImpl_CurrentUser(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.Name, func(t *testing.T) {
-			ctx, responseRecorder := testhelpers.MockGetRequest(serviceUri)
+			ctx, _ := testhelpers.MockGetRequest(serviceUri)
 
 			if tt.Name == "when the request is successful" {
 				ctx.Set("user_id", "1")
@@ -187,9 +165,9 @@ func TestUserHandlerImpl_CurrentUser(t *testing.T) {
 				ctx.Set("user_id", "2")
 			}
 
-			userService.CurrentUser(ctx)
+			code, response := userService.CurrentUser(ctx.GetString("user_id"))
 
-			testhelpers.AssertExpectedCodeAndBodyResponse(t, tt, responseRecorder)
+			testhelpers.AssertExpectedCodeAndResponseService(t, tt, code, response)
 		})
 	}
 }
