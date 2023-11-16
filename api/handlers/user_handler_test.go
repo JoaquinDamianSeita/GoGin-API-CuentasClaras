@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"GoGin-API-CuentasClaras/dao"
 	"GoGin-API-CuentasClaras/dto"
 	testhelpers "GoGin-API-CuentasClaras/test_helpers"
 	"net/http"
@@ -25,31 +24,22 @@ func (m *MockUserService) RegisterUser(registerUserRequest dto.RegisterUserReque
 	return http.StatusOK, gin.H{"message": "User successfully created."}
 }
 
-func (m *MockUserService) LoginUser(c *gin.Context) {
-	var request dao.User
-	c.ShouldBindJSON(&request)
-	if request.Email == "" || request.Password == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid parameters."})
-		return
+func (m *MockUserService) LoginUser(loginUserRequest dto.LoginRequest) (int, map[string]any) {
+	if loginUserRequest.Email == "test.user@example.com" && loginUserRequest.Password == "password123" {
+		return http.StatusOK, gin.H{"token": "token", "expires_in": "3600"}
 	}
 
-	if request.Email == "test.user@example.com" && request.Password == "password123" {
-		c.JSON(http.StatusOK, gin.H{"token": "token", "expires_in": "3600"})
-		return
-	}
-
-	c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
+	return http.StatusUnauthorized, gin.H{"error": "invalid credentials"}
 }
 
-func (m *MockUserService) CurrentUser(c *gin.Context) {
-	userID, _ := strconv.Atoi(c.GetString("user_id"))
+func (m *MockUserService) CurrentUser(userID string) (int, map[string]any) {
+	userIDInt, _ := strconv.Atoi(userID)
 
-	if userID != 1 {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Not authorized"})
-		return
+	if userIDInt != 1 {
+		return http.StatusUnauthorized, gin.H{"error": "Not authorized"}
 	}
 
-	c.JSON(http.StatusOK, gin.H{"username": "test.user", "email": "test@example.com"})
+	return http.StatusOK, gin.H{"username": "test.user", "email": "test@example.com"}
 }
 
 func TestUserHandlerImpl_RegisterUser(t *testing.T) {

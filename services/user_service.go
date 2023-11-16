@@ -13,18 +13,13 @@ import (
 
 type UserService interface {
 	RegisterUser(registerUserRequest dto.RegisterUserRequest) (int, map[string]any)
-	LoginUser(c *gin.Context)
-	CurrentUser(c *gin.Context)
+	LoginUser(loginUserRequest dto.LoginRequest) (int, map[string]any)
+	CurrentUser(userID string) (int, map[string]any)
 }
 
 type UserServiceImpl struct {
 	userRepository repository.UserRepository
 	auth           auth.Auth
-}
-
-type LoginRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
 }
 
 func (u UserServiceImpl) RegisterUser(registerUserRequest dto.RegisterUserRequest) (int, map[string]any) {
@@ -41,44 +36,34 @@ func (u UserServiceImpl) RegisterUser(registerUserRequest dto.RegisterUserReques
 	return http.StatusOK, gin.H{"message": "User successfully created."}
 }
 
-func (u UserServiceImpl) LoginUser(c *gin.Context) {
-	var request LoginRequest
+func (u UserServiceImpl) LoginUser(loginUserRequest dto.LoginRequest) (int, map[string]any) {
 	var user dao.User
-	validationError := c.ShouldBindJSON(&request)
-	if validationError != nil || request.Email == "" || request.Password == "" {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid parameters."})
-		return
-	}
 
-	user, recordError := u.userRepository.FindUserByEmail(request.Email)
+	user, recordError := u.userRepository.FindUserByEmail(loginUserRequest.Email)
 	if recordError != nil {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
-		return
+		return http.StatusUnauthorized, gin.H{"error": "invalid credentials"}
 	}
 
-	credentialError := user.CheckPassword(request.Password)
+	credentialError := user.CheckPassword(loginUserRequest.Password)
 	if credentialError != nil {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
-		return
+		return http.StatusUnauthorized, gin.H{"error": "invalid credentials"}
 	}
 
 	expiresIn, tokenString, err := u.auth.GenerateJWT(fmt.Sprint(user.ID))
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+		return http.StatusInternalServerError, gin.H{"error": err.Error()}
 	}
-	c.JSON(http.StatusOK, gin.H{"token": tokenString, "expires_in": expiresIn})
+	return http.StatusOK, gin.H{"token": tokenString, "expires_in": expiresIn}
 }
 
-func (u UserServiceImpl) CurrentUser(c *gin.Context) {
-	user, recordError := RetrieveCurrentUser(u.userRepository, c.GetString("user_id"))
+func (u UserServiceImpl) CurrentUser(userID string) (int, map[string]any) {
+	user, recordError := RetrieveCurrentUser(u.userRepository, userID)
 
 	if recordError != nil {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Not authorized"})
-		return
+		return http.StatusUnauthorized, gin.H{"error": "Not authorized"}
 	}
 
-	c.JSON(http.StatusOK, gin.H{"email": user.Email, "username": user.Username})
+	return http.StatusOK, gin.H{"email": user.Email, "username": user.Username}
 }
 
 func UserServiceInit(userRepository repository.UserRepository, auth auth.Auth) *UserServiceImpl {
