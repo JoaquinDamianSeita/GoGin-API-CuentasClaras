@@ -3,6 +3,7 @@ package services
 import (
 	auth "GoGin-API-CuentasClaras/api/auth"
 	dao "GoGin-API-CuentasClaras/dao"
+	dto "GoGin-API-CuentasClaras/dto"
 	testhelpers "GoGin-API-CuentasClaras/test_helpers"
 	"errors"
 	"net/http"
@@ -70,42 +71,6 @@ func TestUserServiceImpl_RegisterUser(t *testing.T) {
 			ExpectedBody: `{"message":"User successfully created."}`,
 		},
 		{
-			Name:         "when email is not present",
-			Params:       `{"username": "test.user", "password": "password123"}`,
-			ExpectedCode: http.StatusBadRequest,
-			ExpectedBody: "{\"error\":\"Invalid parameters.\"}",
-		},
-		{
-			Name:         "when email is empty",
-			Params:       `{"email": "", "username": "test.user", "password": "password123"}`,
-			ExpectedCode: http.StatusBadRequest,
-			ExpectedBody: "{\"error\":\"Invalid parameters.\"}",
-		},
-		{
-			Name:         "when password is not present",
-			Params:       `{"email": "test.user@example.com", "username": "user.test"}`,
-			ExpectedCode: http.StatusBadRequest,
-			ExpectedBody: "{\"error\":\"Invalid parameters.\"}",
-		},
-		{
-			Name:         "when password is empty",
-			Params:       `{"email": "test.user@example.com", "username": "test.user", "password": ""}`,
-			ExpectedCode: http.StatusBadRequest,
-			ExpectedBody: "{\"error\":\"Invalid parameters.\"}",
-		},
-		{
-			Name:         "when username is not present",
-			Params:       `{"email": "test.user@example.com", "password": "password123"}`,
-			ExpectedCode: http.StatusBadRequest,
-			ExpectedBody: "{\"error\":\"Invalid parameters.\"}",
-		},
-		{
-			Name:         "when username is empty",
-			Params:       `{"email": "test.user@example.com", "username": "", "password": "password123"}`,
-			ExpectedCode: http.StatusBadRequest,
-			ExpectedBody: "{\"error\":\"Invalid parameters.\"}",
-		},
-		{
 			Name:         "when email is not available",
 			Params:       `{"email": "invalid.user@example.com", "username": "test.user", "password": "password123"}`,
 			ExpectedCode: http.StatusBadRequest,
@@ -120,11 +85,13 @@ func TestUserServiceImpl_RegisterUser(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.Name, func(t *testing.T) {
-			ctx, responseRecorder := testhelpers.MockPostRequest(tt.Params, serviceUri)
+			ctx, _ := testhelpers.MockPostRequest(tt.Params, serviceUri)
+			var registerUserRequest dto.RegisterUserRequest
+			ctx.ShouldBindJSON(&registerUserRequest)
 
-			userService.RegisterUser(ctx)
+			code, response := userService.RegisterUser(registerUserRequest)
 
-			testhelpers.AssertExpectedCodeAndBodyResponse(t, tt, responseRecorder)
+			testhelpers.AssertExpectedCodeAndResponseService(t, tt, code, response)
 		})
 	}
 }

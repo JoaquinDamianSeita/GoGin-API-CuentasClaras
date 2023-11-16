@@ -3,6 +3,7 @@ package services
 import (
 	"GoGin-API-CuentasClaras/api/auth"
 	dao "GoGin-API-CuentasClaras/dao"
+	dto "GoGin-API-CuentasClaras/dto"
 	"GoGin-API-CuentasClaras/repository"
 	"fmt"
 	"net/http"
@@ -11,7 +12,7 @@ import (
 )
 
 type UserService interface {
-	RegisterUser(c *gin.Context)
+	RegisterUser(registerUserRequest dto.RegisterUserRequest) (int, map[string]any)
 	LoginUser(c *gin.Context)
 	CurrentUser(c *gin.Context)
 }
@@ -26,22 +27,18 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
-func (u UserServiceImpl) RegisterUser(c *gin.Context) {
-	var request dao.User
+func (u UserServiceImpl) RegisterUser(registerUserRequest dto.RegisterUserRequest) (int, map[string]any) {
+	_, recordError := u.userRepository.Save(&dao.User{
+		Username: registerUserRequest.Username,
+		Password: registerUserRequest.Password,
+		Email:    registerUserRequest.Email,
+	})
 
-	validationError := c.ShouldBindJSON(&request)
-	if validationError != nil || request.Username == "" || request.Email == "" || request.Password == "" {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid parameters."})
-		return
-	}
-
-	_, recordError := u.userRepository.Save(&request)
 	if recordError != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": recordError.Error()})
-		return
+		return http.StatusBadRequest, gin.H{"error": recordError.Error()}
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "User successfully created."})
+	return http.StatusOK, gin.H{"message": "User successfully created."}
 }
 
 func (u UserServiceImpl) LoginUser(c *gin.Context) {

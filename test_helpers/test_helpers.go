@@ -1,6 +1,7 @@
 package testhelpers
 
 import (
+	"encoding/json"
 	"net/http/httptest"
 	"strings"
 	"testing"
@@ -36,4 +37,21 @@ func AssertExpectedCodeAndBodyResponse(t *testing.T, tt TestStructure, responseR
 	if tt.ExpectedBody != "" {
 		assert.Equal(t, tt.ExpectedBody, responseRecorder.Body.String())
 	}
+}
+
+func AssertExpectedCodeAndResponseService(t *testing.T, tt TestStructure, code int, response map[string]any) {
+	assert.Equal(t, tt.ExpectedCode, code)
+	if tt.ExpectedBody != "" {
+		responseString := mapToString(response)
+
+		assert.Equal(t, tt.ExpectedBody, responseString)
+	}
+}
+
+func mapToString(m map[string]interface{}) string {
+	jsonBytes, err := json.Marshal(m)
+	if err != nil {
+		return ""
+	}
+	return string(jsonBytes)
 }
