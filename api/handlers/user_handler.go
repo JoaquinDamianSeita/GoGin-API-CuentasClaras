@@ -24,7 +24,7 @@ func (u UserHandlerImpl) RegisterUser(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid parameters."})
 		return
 	}
-	code, response := u.svc.RegisterUser(registerUserRequest, ctx)
+	code, response := u.svc.RegisterUser(registerUserRequest)
 	ctx.JSON(code, response)
 }
 

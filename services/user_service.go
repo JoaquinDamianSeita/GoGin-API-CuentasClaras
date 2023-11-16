@@ -12,7 +12,7 @@ import (
 )
 
 type UserService interface {
-	RegisterUser(registerUserRequest dto.RegisterUserRequest, c *gin.Context) (int, map[string]any)
+	RegisterUser(registerUserRequest dto.RegisterUserRequest) (int, map[string]any)
 	LoginUser(c *gin.Context)
 	CurrentUser(c *gin.Context)
 }
@@ -27,8 +27,7 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
-func (u UserServiceImpl) RegisterUser(registerUserRequest dto.RegisterUserRequest, c *gin.Context) (int, map[string]any) {
-
+func (u UserServiceImpl) RegisterUser(registerUserRequest dto.RegisterUserRequest) (int, map[string]any) {
 	_, recordError := u.userRepository.Save(&dao.User{
 		Username: registerUserRequest.Username,
 		Password: registerUserRequest.Password,

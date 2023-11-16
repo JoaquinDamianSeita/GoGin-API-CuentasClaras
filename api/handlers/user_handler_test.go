@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"GoGin-API-CuentasClaras/dao"
+	"GoGin-API-CuentasClaras/dto"
 	testhelpers "GoGin-API-CuentasClaras/test_helpers"
 	"net/http"
 	"strconv"
@@ -12,20 +13,16 @@ import (
 
 type MockUserService struct{}
 
-func (m *MockUserService) RegisterUser(c *gin.Context) {
-	var request dao.User
-	c.ShouldBindJSON(&request)
-	if request.Username == "" || request.Email == "" || request.Password == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid parameters."})
-		return
+func (m *MockUserService) RegisterUser(registerUserRequest dto.RegisterUserRequest) (int, map[string]any) {
+	if registerUserRequest.Username == "" || registerUserRequest.Email == "" || registerUserRequest.Password == "" {
+		return http.StatusBadRequest, gin.H{"error": "Invalid parameters."}
 	}
 
-	if request.Username == "invalid.user" || request.Email == "invalid.user@example.com" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "the email or the user is already in use"})
-		return
+	if registerUserRequest.Username == "invalid.user" || registerUserRequest.Email == "invalid.user@example.com" {
+		return http.StatusBadRequest, gin.H{"error": "the email or the user is already in use"}
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "User successfully created."})
+	return http.StatusOK, gin.H{"message": "User successfully created."}
 }
 
 func (m *MockUserService) LoginUser(c *gin.Context) {
