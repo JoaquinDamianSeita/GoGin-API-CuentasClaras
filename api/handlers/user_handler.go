@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"GoGin-API-CuentasClaras/dto"
 	"GoGin-API-CuentasClaras/services"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -16,8 +18,14 @@ type UserHandlerImpl struct {
 	svc services.UserService
 }
 
-func (u UserHandlerImpl) RegisterUser(c *gin.Context) {
-	u.svc.RegisterUser(c)
+func (u UserHandlerImpl) RegisterUser(ctx *gin.Context) {
+	var registerUserRequest dto.RegisterUserRequest
+	if err := ctx.ShouldBindJSON(&registerUserRequest); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid parameters."})
+		return
+	}
+	code, response := u.svc.RegisterUser(registerUserRequest, ctx)
+	ctx.JSON(code, response)
 }
 
 func (u UserHandlerImpl) LoginUser(c *gin.Context) {
