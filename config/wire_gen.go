@@ -21,7 +21,7 @@ func Init() *Initialization {
 	userRepositoryImpl := repository.UserRepositoryInit(gormDB)
 	operationRepositoryImpl := repository.OperationRepositoryInit(gormDB)
 	categoryRepositoryImpl := repository.CategoryRepositoryInit(gormDB)
-	authImpl := auth.AuthInit()
+	authImpl := auth.AuthInit(userRepositoryImpl)
 	userServiceImpl := services.UserServiceInit(userRepositoryImpl, authImpl)
 	operationServiceImpl := services.OperationServiceInit(userRepositoryImpl, operationRepositoryImpl, categoryRepositoryImpl)
 	userHandlerImpl := handlers.UserHandlerInit(userServiceImpl)
@@ -47,3 +47,5 @@ var categoryRepoSet = wire.NewSet(repository.CategoryRepositoryInit, wire.Bind(n
 var userHdlerSet = wire.NewSet(handlers.UserHandlerInit, wire.Bind(new(handlers.UserHandler), new(*handlers.UserHandlerImpl)))
 
 var operationHdlerSet = wire.NewSet(handlers.OperationHandlerInit, wire.Bind(new(handlers.OperationHandler), new(*handlers.OperationHandlerImpl)))
+
+var authSet = wire.NewSet(auth.AuthInit, wire.Bind(new(auth.Auth), new(*auth.AuthImpl)))

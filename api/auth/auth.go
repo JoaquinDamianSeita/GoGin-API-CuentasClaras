@@ -1,8 +1,10 @@
 package auth
 
 import (
+	"GoGin-API-CuentasClaras/repository"
 	"errors"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -20,7 +22,9 @@ type Auth interface {
 	ValidateToken(signedToken string) (claims *JWTClaim, err error)
 }
 
-type AuthImpl struct{}
+type AuthImpl struct {
+	userRepository repository.UserRepository
+}
 
 func (auth AuthImpl) GenerateJWT(userId string) (expiresIn int64, tokenString string, err error) {
 	expirationTime := time.Now().Add(1 * time.Hour)
@@ -56,9 +60,20 @@ func (auth AuthImpl) ValidateToken(signedToken string) (claims *JWTClaim, err er
 		err = errors.New("token expired")
 		return nil, err
 	}
+
+	intUserID, _ := strconv.Atoi(claims.UserID)
+	_, recordError := auth.userRepository.FindUserById(intUserID)
+
+	if recordError != nil {
+		err = errors.New("invalid token")
+		return nil, err
+	}
+
 	return claims, nil
 }
 
-func AuthInit() *AuthImpl {
-	return &AuthImpl{}
+func AuthInit(userRepository repository.UserRepository) *AuthImpl {
+	return &AuthImpl{
+		userRepository: userRepository,
+	}
 }

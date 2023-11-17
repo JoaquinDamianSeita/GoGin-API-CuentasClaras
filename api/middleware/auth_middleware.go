@@ -1,14 +1,14 @@
 package middleware
 
 import (
-	"GoGin-API-CuentasClaras/api/auth"
+	"GoGin-API-CuentasClaras/config"
 	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
-func AuthMiddleware() gin.HandlerFunc {
+func AuthMiddleware(initConfig *config.Initialization) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
@@ -23,8 +23,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		tokenString := authHeaderParts[1]
-		authService := auth.AuthInit()
-		claims, err := authService.ValidateToken(tokenString)
+		claims, err := initConfig.Auth.ValidateToken(tokenString)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Not authorized"})
 			return
