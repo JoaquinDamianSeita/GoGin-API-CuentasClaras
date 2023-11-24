@@ -83,6 +83,10 @@ func (u MockOperationRepositoryOperations) Save(operation *dao.Operation) (dao.O
 	return dao.Operation{}, nil
 }
 
+func (u MockOperationRepositoryOperations) Update(operation *dao.Operation) (dao.Operation, error) {
+	return dao.Operation{}, nil
+}
+
 type MockCategoryRepositoryOperations struct{}
 
 func (u MockCategoryRepositoryOperations) FindCategoryByOperation(operation dao.Operation) (dao.Category, error) {
@@ -180,26 +184,26 @@ func TestOperationServiceImpl_Create(t *testing.T) {
 	var tests = []testhelpers.TestInterfaceStructure{
 		{
 			Name:         "when the operation is created successfully",
-			Params:       dto.CreateOperationRequest{Type: "income", Amount: 200.50, Date: validDate, Description: "Payment for services", CategoryID: "1"},
+			Params:       dto.OperationRequest{Type: "income", Amount: 200.50, Date: validDate, Description: "Payment for services", CategoryID: "1"},
 			ExpectedCode: http.StatusCreated,
 			ExpectedBody: "{\"message\":\"Operation successfully created.\"}",
 		},
 		{
 			Name:         "when the operation has invalid category ID",
-			Params:       dto.CreateOperationRequest{Type: "income", Amount: 200.50, Date: validDate, Description: "Payment for services", CategoryID: "2"},
+			Params:       dto.OperationRequest{Type: "income", Amount: 200.50, Date: validDate, Description: "Payment for services", CategoryID: "2"},
 			ExpectedCode: http.StatusUnprocessableEntity,
 			ExpectedBody: "{\"error\":\"Invalid category.\"}",
 		},
 		{
 			Name:         "when there is an error in the creation of the operation",
-			Params:       dto.CreateOperationRequest{Type: "expense", Amount: 200.50, Date: validDate, Description: "Payment for work", CategoryID: "1"},
+			Params:       dto.OperationRequest{Type: "expense", Amount: 200.50, Date: validDate, Description: "Payment for work", CategoryID: "1"},
 			ExpectedCode: http.StatusUnprocessableEntity,
 			ExpectedBody: "{\"error\":\"An error occurred in the creation of the operation.\"}",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.Name, func(t *testing.T) {
-			code, response := operationService.Create(dao.User{ID: 1}, tt.Params.(dto.CreateOperationRequest))
+			code, response := operationService.Create(dao.User{ID: 1}, tt.Params.(dto.OperationRequest))
 
 			testhelpers.AssertExpectedCodeAndResponseServiceDto(t, tt, code, response)
 		})

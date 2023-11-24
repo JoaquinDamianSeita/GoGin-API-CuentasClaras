@@ -59,18 +59,18 @@ func (m *MockOperationService) Show(user dao.User, operationID int) (int, interf
 	}
 }
 
-func (m *MockOperationService) Create(user dao.User, createOperationRequest dto.CreateOperationRequest) (int, map[string]any) {
-	if createOperationRequest.Type == "invalid" ||
-		createOperationRequest.Amount == 0.0 ||
-		createOperationRequest.Date == "2023-11-01T00:00:00Z" {
+func (m *MockOperationService) Create(user dao.User, operationRequest dto.OperationRequest) (int, interface{}) {
+	if operationRequest.Type == "invalid" ||
+		operationRequest.Amount == 0.0 ||
+		operationRequest.Date == "2023-11-01T00:00:00Z" {
 		return http.StatusBadRequest, gin.H{"error": "Invalid parameters."}
 	}
 
-	if createOperationRequest.CategoryID == "2" {
+	if operationRequest.CategoryID == "2" {
 		return http.StatusUnprocessableEntity, gin.H{"error": "Invalid Category."}
 	}
 
-	if createOperationRequest.Description == "Payment for work" {
+	if operationRequest.Description == "Payment for work" {
 		return http.StatusUnprocessableEntity, gin.H{"error": "An error occurred in the creation of the operation."}
 	}
 

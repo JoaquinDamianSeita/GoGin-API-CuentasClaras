@@ -11,6 +11,7 @@ type OperationRepository interface {
 	FindOperationsByUser(user dao.User) ([]dao.Operation, error)
 	Save(operation *dao.Operation) (dao.Operation, error)
 	FindOperationByUserAndId(user dao.User, operationID int) (dao.Operation, error)
+	Update(operation *dao.Operation) (dao.Operation, error)
 }
 
 type OperationRepositoryImpl struct {
@@ -38,6 +39,11 @@ func (u OperationRepositoryImpl) FindOperationByUserAndId(user dao.User, operati
 
 func (u OperationRepositoryImpl) Save(operation *dao.Operation) (dao.Operation, error) {
 	err := u.db.Create(&operation).Error
+	return *operation, err
+}
+
+func (u OperationRepositoryImpl) Update(operation *dao.Operation) (dao.Operation, error) {
+	err := u.db.Save(&operation).Error
 	return *operation, err
 }
 
