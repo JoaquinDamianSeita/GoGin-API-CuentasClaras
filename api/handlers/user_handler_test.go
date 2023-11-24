@@ -1,10 +1,10 @@
 package handlers
 
 import (
+	"GoGin-API-CuentasClaras/dao"
 	"GoGin-API-CuentasClaras/dto"
 	testhelpers "GoGin-API-CuentasClaras/test_helpers"
 	"net/http"
-	"strconv"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -32,10 +32,8 @@ func (m *MockUserService) LoginUser(loginUserRequest dto.LoginRequest) (int, map
 	return http.StatusUnauthorized, gin.H{"error": "invalid credentials"}
 }
 
-func (m *MockUserService) CurrentUser(userID string) (int, map[string]any) {
-	userIDInt, _ := strconv.Atoi(userID)
-
-	if userIDInt != 1 {
+func (m *MockUserService) CurrentUser(user dao.User) (int, map[string]any) {
+	if user.ID != 1 {
 		return http.StatusUnauthorized, gin.H{"error": "Not authorized"}
 	}
 
@@ -186,22 +184,11 @@ func TestUserHandlerImpl_CurrentUser(t *testing.T) {
 			ExpectedCode: http.StatusOK,
 			ExpectedBody: "{\"email\":\"test@example.com\",\"username\":\"test.user\"}",
 		},
-		{
-			Name:         "when user does not exists",
-			Params:       "",
-			ExpectedCode: http.StatusUnauthorized,
-			ExpectedBody: "{\"error\":\"Not authorized\"}",
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.Name, func(t *testing.T) {
 			ctx, responseRecorder := testhelpers.MockGetRequest(serviceUri)
-
-			if tt.Name == "when the request is successful" {
-				ctx.Set("user_id", "1")
-			} else {
-				ctx.Set("user_id", "2")
-			}
+			ctx.Set("user", dao.User{ID: 1})
 
 			userHandler.CurrentUser(ctx)
 

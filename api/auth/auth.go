@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"GoGin-API-CuentasClaras/dto"
 	"errors"
 	"os"
 	"time"
@@ -17,7 +18,7 @@ type JWTClaim struct {
 
 type Auth interface {
 	GenerateJWT(userId string) (expiresIn int64, tokenString string, err error)
-	ValidateToken(signedToken string) (claims *JWTClaim, err error)
+	ValidateToken(signedToken string) (claims *dto.JWTClaim, err error)
 }
 
 type AuthImpl struct{}
@@ -36,10 +37,10 @@ func (auth AuthImpl) GenerateJWT(userId string) (expiresIn int64, tokenString st
 	return
 }
 
-func (auth AuthImpl) ValidateToken(signedToken string) (claims *JWTClaim, err error) {
+func (auth AuthImpl) ValidateToken(signedToken string) (claims *dto.JWTClaim, err error) {
 	token, err := jwt.ParseWithClaims(
 		signedToken,
-		&JWTClaim{},
+		&dto.JWTClaim{},
 		func(token *jwt.Token) (interface{}, error) {
 			return []byte(jwtKey), nil
 		},
@@ -47,7 +48,7 @@ func (auth AuthImpl) ValidateToken(signedToken string) (claims *JWTClaim, err er
 	if err != nil {
 		return nil, err
 	}
-	claims, ok := token.Claims.(*JWTClaim)
+	claims, ok := token.Claims.(*dto.JWTClaim)
 	if !ok {
 		err = errors.New("couldn't parse claims")
 		return nil, err

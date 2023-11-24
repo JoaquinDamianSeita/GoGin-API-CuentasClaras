@@ -20,15 +20,15 @@ func UserRoutes(router *gin.RouterGroup, initConfig *config.Initialization) {
 	{
 		user.POST("", initConfig.UserHdler.RegisterUser)
 		user.POST("/login", initConfig.UserHdler.LoginUser)
-		user.GET("/current", middleware.AuthMiddleware(), initConfig.UserHdler.CurrentUser)
+		user.GET("/current", middleware.AuthMiddleware(initConfig), initConfig.UserHdler.CurrentUser)
 	}
 }
 
 func OperationRoutes(router *gin.RouterGroup, initConfig *config.Initialization) {
 	operation := router.Group("/operations")
 	{
-		operation.GET("", middleware.AuthMiddleware(), initConfig.OperationHdler.Index)
-		operation.GET("/:id", middleware.AuthMiddleware(), initConfig.OperationHdler.Show)
-		operation.POST("", middleware.AuthMiddleware(), initConfig.OperationHdler.Create)
+		operation.GET("", middleware.AuthMiddleware(initConfig), initConfig.OperationHdler.Index)
+		operation.GET("/:id", middleware.AuthMiddleware(initConfig), initConfig.OperationHdler.Show)
+		operation.POST("", middleware.AuthMiddleware(initConfig), initConfig.OperationHdler.Create)
 	}
 }

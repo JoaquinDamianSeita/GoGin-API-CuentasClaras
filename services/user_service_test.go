@@ -1,7 +1,6 @@
 package services
 
 import (
-	auth "GoGin-API-CuentasClaras/api/auth"
 	dao "GoGin-API-CuentasClaras/dao"
 	dto "GoGin-API-CuentasClaras/dto"
 	testhelpers "GoGin-API-CuentasClaras/test_helpers"
@@ -40,7 +39,7 @@ func (m *MockUserRepository) FindUserByEmail(email string) (dao.User, error) {
 	if email == "test.user@example.com" {
 		return dao.User{
 			Email:    "test.user@example.com",
-			Password: "$2a$12$tDdX/jDY.JEoFMfk6bbuROMkJnxvDFV7VuQIqT88GaJI.auLEp.iq", // Contraseña válida en formato bcrypt
+			Password: "$2a$12$tDdX/jDY.JEoFMfk6bbuROMkJnxvDFV7VuQIqT88GaJI.auLEp.iq",
 		}, nil
 	}
 
@@ -53,8 +52,12 @@ func (auth *MockAuth) GenerateJWT(userId string) (expiresIn int64, tokenString s
 	return 3600, "token", nil
 }
 
-func (auth *MockAuth) ValidateToken(signedToken string) (claims *auth.JWTClaim, err error) {
-	return nil, nil
+func (auth *MockAuth) ValidateToken(signedToken string) (claims *dto.JWTClaim, err error) {
+	if signedToken == "valid_token" {
+		claims = &dto.JWTClaim{}
+		return claims, nil
+	}
+	return nil, errors.New("Invalid token")
 }
 
 func TestUserServiceImpl_RegisterUser(t *testing.T) {
@@ -96,7 +99,7 @@ func TestUserServiceImpl_RegisterUser(t *testing.T) {
 	}
 }
 
-func TestUserHandlerImpl_LoginUser(t *testing.T) {
+func TestUserServiceImpl_LoginUser(t *testing.T) {
 	userRepository := &MockUserRepository{}
 	auth := &MockAuth{}
 	userService := UserServiceInit(userRepository, auth)
@@ -135,39 +138,24 @@ func TestUserHandlerImpl_LoginUser(t *testing.T) {
 	}
 }
 
-func TestUserHandlerImpl_CurrentUser(t *testing.T) {
+func TestUserServiceImpl_CurrentUser(t *testing.T) {
 	userRepository := &MockUserRepository{}
 	auth := &MockAuth{}
 	userService := UserServiceInit(userRepository, auth)
-	serviceUri := "/api/users/current"
 
-	var tests = []testhelpers.TestStructure{
+	var tests = []testhelpers.TestInterfaceStructure{
 		{
 			Name:         "when the request is successful",
-			Params:       "",
+			Params:       dao.User{ID: 1, Username: "test.user", Email: "test.user@example.com"},
 			ExpectedCode: http.StatusOK,
 			ExpectedBody: "{\"email\":\"test.user@example.com\",\"username\":\"test.user\"}",
-		},
-		{
-			Name:         "when user does not exists",
-			Params:       "",
-			ExpectedCode: http.StatusUnauthorized,
-			ExpectedBody: "{\"error\":\"Not authorized\"}",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.Name, func(t *testing.T) {
-			ctx, _ := testhelpers.MockGetRequest(serviceUri)
+			code, response := userService.CurrentUser(tt.Params.(dao.User))
 
-			if tt.Name == "when the request is successful" {
-				ctx.Set("user_id", "1")
-			} else {
-				ctx.Set("user_id", "2")
-			}
-
-			code, response := userService.CurrentUser(ctx.GetString("user_id"))
-
-			testhelpers.AssertExpectedCodeAndResponseService(t, tt, code, response)
+			testhelpers.AssertExpectedCodeAndResponseServiceDto(t, tt, code, response)
 		})
 	}
 }

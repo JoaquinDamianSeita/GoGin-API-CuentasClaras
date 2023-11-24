@@ -6,6 +6,7 @@ import (
 	dto "GoGin-API-CuentasClaras/dto"
 	"GoGin-API-CuentasClaras/repository"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -14,7 +15,7 @@ import (
 type UserService interface {
 	RegisterUser(registerUserRequest dto.RegisterUserRequest) (int, map[string]any)
 	LoginUser(loginUserRequest dto.LoginRequest) (int, map[string]any)
-	CurrentUser(userID string) (int, map[string]any)
+	CurrentUser(user dao.User) (int, map[string]any)
 }
 
 type UserServiceImpl struct {
@@ -56,13 +57,8 @@ func (u UserServiceImpl) LoginUser(loginUserRequest dto.LoginRequest) (int, map[
 	return http.StatusOK, gin.H{"token": tokenString, "expires_in": expiresIn}
 }
 
-func (u UserServiceImpl) CurrentUser(userID string) (int, map[string]any) {
-	user, recordError := RetrieveCurrentUser(u.userRepository, userID)
-
-	if recordError != nil {
-		return http.StatusUnauthorized, gin.H{"error": "Not authorized"}
-	}
-
+func (u UserServiceImpl) CurrentUser(user dao.User) (int, map[string]any) {
+	log.Println(user)
 	return http.StatusOK, gin.H{"email": user.Email, "username": user.Username}
 }
 
