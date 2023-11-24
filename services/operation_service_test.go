@@ -2,14 +2,12 @@ package services
 
 import (
 	dao "GoGin-API-CuentasClaras/dao"
+	"GoGin-API-CuentasClaras/dto"
 	testhelpers "GoGin-API-CuentasClaras/test_helpers"
 	"errors"
 	"net/http"
-	"strconv"
 	"testing"
 	"time"
-
-	"github.com/gin-gonic/gin"
 )
 
 type MockUserRepositoryOperations struct{}
@@ -107,9 +105,8 @@ func TestOperationServiceImpl_Index(t *testing.T) {
 	operationRepository := &MockOperationRepositoryOperations{}
 	categoryRepository := &MockCategoryRepositoryOperations{}
 	operationService := OperationServiceInit(userRepository, operationRepository, categoryRepository)
-	serviceUri := "/api/operations"
 
-	var tests = []testhelpers.TestStructure{
+	var tests = []testhelpers.TestInterfaceStructure{
 		{
 			Name:         "when the user has operations",
 			Params:       "",
@@ -122,28 +119,18 @@ func TestOperationServiceImpl_Index(t *testing.T) {
 			ExpectedCode: http.StatusOK,
 			ExpectedBody: "[]",
 		},
-		{
-			Name:         "when the user does not exist",
-			Params:       "",
-			ExpectedCode: http.StatusUnauthorized,
-			ExpectedBody: "{\"error\":\"Not authorized\"}",
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.Name, func(t *testing.T) {
-			ctx, responseRecorder := testhelpers.MockGetRequest(serviceUri)
+			user := dao.User{ID: 1}
 
-			if tt.Name == "when the user has operations" {
-				ctx.Set("user_id", "1")
-			} else if tt.Name == "when the user has no operations" {
-				ctx.Set("user_id", "2")
-			} else {
-				ctx.Set("user_id", "3")
+			if tt.Name == "when the user has no operations" {
+				user = dao.User{ID: 2}
 			}
 
-			operationService.Index(ctx)
+			code, response := operationService.Index(user)
 
-			testhelpers.AssertExpectedCodeAndBodyResponse(t, tt, responseRecorder)
+			testhelpers.AssertExpectedCodeAndResponseServiceDto(t, tt, code, response)
 		})
 	}
 }
@@ -153,9 +140,8 @@ func TestOperationServiceImpl_Show(t *testing.T) {
 	operationRepository := &MockOperationRepositoryOperations{}
 	categoryRepository := &MockCategoryRepositoryOperations{}
 	operationService := OperationServiceInit(userRepository, operationRepository, categoryRepository)
-	serviceUri := "/api/operations"
 
-	var tests = []testhelpers.TestStructure{
+	var tests = []testhelpers.TestInterfaceStructure{
 		{
 			Name:         "when the operation is found",
 			Params:       "",
@@ -168,38 +154,18 @@ func TestOperationServiceImpl_Show(t *testing.T) {
 			ExpectedCode: http.StatusNotFound,
 			ExpectedBody: "{\"error\":\"Not found.\"}",
 		},
-		{
-			Name:         "when the user does not exist",
-			Params:       "",
-			ExpectedCode: http.StatusUnauthorized,
-			ExpectedBody: "{\"error\":\"Not authorized\"}",
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.Name, func(t *testing.T) {
-			user_id := "1"
 			operation_id := 1
 
-			if tt.Name == "when the user does not exist" {
-				user_id = "3"
-			} else if tt.Name == "when the operation is not found" {
+			if tt.Name == "when the operation is not found" {
 				operation_id = 2
 			}
 
-			ctx, responseRecorder := testhelpers.MockGetRequest(serviceUri)
+			code, response := operationService.Show(dao.User{ID: 1}, operation_id)
 
-			ctx.Set("user_id", user_id)
-
-			ctx.Params = []gin.Param{
-				{
-					Key:   "id",
-					Value: strconv.Itoa(operation_id),
-				},
-			}
-
-			operationService.Show(ctx)
-
-			testhelpers.AssertExpectedCodeAndBodyResponse(t, tt, responseRecorder)
+			testhelpers.AssertExpectedCodeAndResponseServiceDto(t, tt, code, response)
 		})
 	}
 }
@@ -209,69 +175,33 @@ func TestOperationServiceImpl_Create(t *testing.T) {
 	operationRepository := &MockOperationRepositoryOperations{}
 	categoryRepository := &MockCategoryRepositoryOperations{}
 	operationService := OperationServiceInit(userRepository, operationRepository, categoryRepository)
-	serviceUri := "/api/operations"
-	invalidDate := time.Now().Add(time.Hour).Format(time.RFC3339)
 	validDate := time.Now().Add(-time.Hour).Format(time.RFC3339)
 
-	var tests = []testhelpers.TestStructure{
+	var tests = []testhelpers.TestInterfaceStructure{
 		{
 			Name:         "when the operation is created successfully",
-			Params:       `{"type": "income", "amount": 200.50, "date": "` + validDate + `", "description": "Payment for services", "category_id": "1"}`,
+			Params:       dto.CreateOperationRequest{Type: "income", Amount: 200.50, Date: validDate, Description: "Payment for services", CategoryID: "1"},
 			ExpectedCode: http.StatusCreated,
 			ExpectedBody: "{\"message\":\"Operation successfully created.\"}",
 		},
 		{
-			Name:         "when the operation has invalid type",
-			Params:       `{"type": "invalid", "amount": 200.50, "date": "` + validDate + `", "description": "Payment for services", "category_id": "1"}`,
-			ExpectedCode: http.StatusBadRequest,
-			ExpectedBody: "{\"error\":\"Invalid parameters.\"}",
-		},
-		{
-			Name:         "when the operation has invalid amount",
-			Params:       `{"type": "income", "amount": 0.0, "date": "` + validDate + `", "description": "Payment for services", "category_id": "1"}`,
-			ExpectedCode: http.StatusBadRequest,
-			ExpectedBody: "{\"error\":\"Invalid parameters.\"}",
-		},
-		{
-			Name:         "when the operation has invalid date",
-			Params:       `{"type": "income", "amount": 200.50, "date": "` + invalidDate + `", "description": "Payment for services", "category_id": "1"}`,
-			ExpectedCode: http.StatusBadRequest,
-			ExpectedBody: "{\"error\":\"Invalid parameters.\"}",
-		},
-		{
 			Name:         "when the operation has invalid category ID",
-			Params:       `{"type": "income", "amount": 200.50, "date": "` + validDate + `", "description": "Payment for services", "category_id": "2"}`,
-			ExpectedCode: http.StatusBadRequest,
-			ExpectedBody: "{\"error\":\"Invalid parameters.\"}",
+			Params:       dto.CreateOperationRequest{Type: "income", Amount: 200.50, Date: validDate, Description: "Payment for services", CategoryID: "2"},
+			ExpectedCode: http.StatusUnprocessableEntity,
+			ExpectedBody: "{\"error\":\"Invalid category.\"}",
 		},
 		{
 			Name:         "when there is an error in the creation of the operation",
-			Params:       `{"type": "expense", "amount": 200.50, "date": "` + validDate + `", "description": "Payment for work", "category_id": "1"}`,
+			Params:       dto.CreateOperationRequest{Type: "expense", Amount: 200.50, Date: validDate, Description: "Payment for work", CategoryID: "1"},
 			ExpectedCode: http.StatusUnprocessableEntity,
 			ExpectedBody: "{\"error\":\"An error occurred in the creation of the operation.\"}",
-		},
-		{
-			Name:         "when the user does not exist",
-			Params:       `{"type": "income", "amount": 200.50, "date": "` + validDate + `", "description": "Payment for services", "category_id": "1"}`,
-			ExpectedCode: http.StatusUnauthorized,
-			ExpectedBody: "{\"error\":\"Not authorized\"}",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.Name, func(t *testing.T) {
-			user_id := "1"
+			code, response := operationService.Create(dao.User{ID: 1}, tt.Params.(dto.CreateOperationRequest))
 
-			if tt.Name == "when the user does not exist" {
-				user_id = "3"
-			}
-
-			ctx, responseRecorder := testhelpers.MockPostRequest(tt.Params, serviceUri)
-
-			ctx.Set("user_id", user_id)
-
-			operationService.Create(ctx)
-
-			testhelpers.AssertExpectedCodeAndBodyResponse(t, tt, responseRecorder)
+			testhelpers.AssertExpectedCodeAndResponseServiceDto(t, tt, code, response)
 		})
 	}
 }

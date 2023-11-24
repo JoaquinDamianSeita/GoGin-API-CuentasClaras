@@ -3,6 +3,7 @@ package middleware
 import (
 	"GoGin-API-CuentasClaras/config"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -29,7 +30,15 @@ func AuthMiddleware(initConfig *config.Initialization) gin.HandlerFunc {
 			return
 		}
 
-		c.Set("user_id", claims.UserID)
+		intUserID, _ := strconv.Atoi(claims.UserID)
+		user, recordError := initConfig.UserRepo.FindUserById(intUserID)
+
+		if recordError != nil {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Not authorized"})
+			return
+		}
+
+		c.Set("user", user)
 		c.Next()
 	}
 }

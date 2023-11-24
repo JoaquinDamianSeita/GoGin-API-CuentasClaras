@@ -2,8 +2,8 @@ package services
 
 import (
 	"GoGin-API-CuentasClaras/dao"
+	dto "GoGin-API-CuentasClaras/dto"
 	"GoGin-API-CuentasClaras/repository"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -12,9 +12,9 @@ import (
 )
 
 type OperationService interface {
-	Index(c *gin.Context)
-	Show(c *gin.Context)
-	Create(c *gin.Context)
+	Index(user dao.User) (int, []dto.TransformedOperation)
+	Show(user dao.User, operationID int) (int, interface{})
+	Create(user dao.User, createOperationRequest dto.CreateOperationRequest) (int, map[string]any)
 }
 
 type OperationServiceImpl struct {
@@ -23,64 +23,19 @@ type OperationServiceImpl struct {
 	categoryRepository  repository.CategoryRepository
 }
 
-type TransformedOperation struct {
-	ID       int                 `json:"id"`
-	Type     string              `json:"type"`
-	Amount   float64             `json:"amount"`
-	Date     time.Time           `json:"date"`
-	Category TransformedCategory `json:"category"`
-}
-
-type TransformedCategory struct {
-	Name  string `json:"name"`
-	Color string `json:"color"`
-}
-
-type TransformedShowOperation struct {
-	ID          int                     `json:"id"`
-	Type        string                  `json:"type"`
-	Amount      float64                 `json:"amount"`
-	Date        time.Time               `json:"date"`
-	Category    TransformedShowCategory `json:"category"`
-	Description string                  `json:"description"`
-}
-
-type TransformedShowCategory struct {
-	Name        string `json:"name"`
-	Color       string `json:"color"`
-	Description string `json:"description"`
-}
-
-type CreateOperationRequest struct {
-	Type        string  `json:"type"`
-	Amount      float64 `json:"amount"`
-	Date        string  `json:"date"`
-	Description string  `json:"description"`
-	CategoryID  string  `json:"category_id"`
-}
-
-var createOperationRequest CreateOperationRequest
 var createCategoryOperation dao.Category
 
-func (u OperationServiceImpl) Index(c *gin.Context) {
-	user, recordError := RetrieveCurrentUser(u.userRepository, c.GetString("user_id"))
-
-	if recordError != nil {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Not authorized"})
-		return
-	}
-
+func (u OperationServiceImpl) Index(user dao.User) (int, []dto.TransformedOperation) {
 	operations, _ := u.operationRepository.FindOperationsByUser(user)
-
-	transformedResponse := []TransformedOperation{}
+	transformedResponse := []dto.TransformedOperation{}
 	for _, operation := range operations {
 		category, _ := u.categoryRepository.FindCategoryByOperation(operation)
-		transformed := TransformedOperation{
+		transformed := dto.TransformedOperation{
 			ID:     operation.ID,
 			Type:   operation.Type,
 			Amount: operation.Amount,
 			Date:   operation.Date.In(utcLocation),
-			Category: TransformedCategory{
+			Category: dto.TransformedCategory{
 				Name:  category.Name,
 				Color: category.Color,
 			},
@@ -88,53 +43,35 @@ func (u OperationServiceImpl) Index(c *gin.Context) {
 		transformedResponse = append(transformedResponse, transformed)
 	}
 
-	c.JSON(http.StatusOK, transformedResponse)
+	return http.StatusOK, transformedResponse
 }
 
-func (u OperationServiceImpl) Show(c *gin.Context) {
-	user, recordErrorUser := RetrieveCurrentUser(u.userRepository, c.GetString("user_id"))
-
-	if recordErrorUser != nil {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Not authorized"})
-		return
-	}
-
-	operationID, _ := strconv.Atoi(c.Param("id"))
+func (u OperationServiceImpl) Show(user dao.User, operationID int) (int, interface{}) {
 	operation, recordErrorOperation := u.operationRepository.FindOperationByUserAndId(user, operationID)
 
 	if recordErrorOperation != nil {
-		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Not found."})
-		return
+		return http.StatusNotFound, gin.H{"error": "Not found."}
 	}
 
-	TransformedOperation := TransformedShowOperation{
+	TransformedOperation := dto.TransformedShowOperation{
 		ID:          operation.ID,
 		Type:        operation.Type,
 		Amount:      operation.Amount,
 		Date:        operation.Date.In(utcLocation),
 		Description: operation.Description,
-		Category: TransformedShowCategory{
+		Category: dto.TransformedShowCategory{
 			Name:        operation.Category.Name,
 			Color:       operation.Category.Color,
 			Description: operation.Category.Description,
 		},
 	}
 
-	c.JSON(http.StatusOK, TransformedOperation)
+	return http.StatusOK, TransformedOperation
 }
 
-func (u OperationServiceImpl) Create(c *gin.Context) {
-	user, recordErrorUser := RetrieveCurrentUser(u.userRepository, c.GetString("user_id"))
-
-	if recordErrorUser != nil {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Not authorized"})
-		return
-	}
-
-	validationError := c.ShouldBindJSON(&createOperationRequest)
-	if validationError != nil || invalidType() || invalidAmount() || invalidDate() || invalidCategoryID(u.categoryRepository) {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid parameters."})
-		return
+func (u OperationServiceImpl) Create(user dao.User, createOperationRequest dto.CreateOperationRequest) (int, map[string]any) {
+	if invalidCategoryID(createOperationRequest.CategoryID, u.categoryRepository) {
+		return http.StatusUnprocessableEntity, gin.H{"error": "Invalid category."}
 	}
 
 	dateOperation, _ := time.Parse(time.RFC3339, createOperationRequest.Date)
@@ -150,43 +87,21 @@ func (u OperationServiceImpl) Create(c *gin.Context) {
 
 	_, recordError := u.operationRepository.Save(&operationDao)
 	if recordError != nil {
-		c.AbortWithStatusJSON(
-			http.StatusUnprocessableEntity, gin.H{"error": "An error occurred in the creation of the operation."})
-		return
+		return http.StatusUnprocessableEntity, gin.H{"error": "An error occurred in the creation of the operation."}
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "Operation successfully created."})
+	return http.StatusCreated, gin.H{"message": "Operation successfully created."}
 }
 
-func invalidType() bool {
-	if createOperationRequest.Type == "" {
+func invalidCategoryID(categoryID string, categoryRepository repository.CategoryRepository) bool {
+	if categoryID == "" {
 		return true
 	}
-	return createOperationRequest.Type != "income" && createOperationRequest.Type != "expense"
-}
-
-func invalidAmount() bool {
-	return createOperationRequest.Amount <= 0.0
-}
-
-func invalidDate() bool {
-	if createOperationRequest.Date == "" {
-		return true
-	}
-	parsedDate, err := time.Parse(time.RFC3339, createOperationRequest.Date)
-	return err != nil || parsedDate.After(time.Now())
-}
-
-func invalidCategoryID(categoryRepository repository.CategoryRepository) bool {
-	if createOperationRequest.CategoryID == "" {
-		return true
-	}
-	categoryIdInt, errParseInt := strconv.Atoi(createOperationRequest.CategoryID)
+	categoryIdInt, errParseInt := strconv.Atoi(categoryID)
 	if errParseInt != nil {
 		return true
 	}
 	category, errFindCategory := categoryRepository.FindCategoryById(categoryIdInt)
-	log.Println(errFindCategory)
 	createCategoryOperation = category
 	return errFindCategory != nil
 }

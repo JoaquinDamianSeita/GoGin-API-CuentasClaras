@@ -1,10 +1,9 @@
 package auth
 
 import (
-	"GoGin-API-CuentasClaras/repository"
+	"GoGin-API-CuentasClaras/dto"
 	"errors"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -19,12 +18,10 @@ type JWTClaim struct {
 
 type Auth interface {
 	GenerateJWT(userId string) (expiresIn int64, tokenString string, err error)
-	ValidateToken(signedToken string) (claims *JWTClaim, err error)
+	ValidateToken(signedToken string) (claims *dto.JWTClaim, err error)
 }
 
-type AuthImpl struct {
-	userRepository repository.UserRepository
-}
+type AuthImpl struct{}
 
 func (auth AuthImpl) GenerateJWT(userId string) (expiresIn int64, tokenString string, err error) {
 	expirationTime := time.Now().Add(1 * time.Hour)
@@ -40,10 +37,10 @@ func (auth AuthImpl) GenerateJWT(userId string) (expiresIn int64, tokenString st
 	return
 }
 
-func (auth AuthImpl) ValidateToken(signedToken string) (claims *JWTClaim, err error) {
+func (auth AuthImpl) ValidateToken(signedToken string) (claims *dto.JWTClaim, err error) {
 	token, err := jwt.ParseWithClaims(
 		signedToken,
-		&JWTClaim{},
+		&dto.JWTClaim{},
 		func(token *jwt.Token) (interface{}, error) {
 			return []byte(jwtKey), nil
 		},
@@ -51,7 +48,7 @@ func (auth AuthImpl) ValidateToken(signedToken string) (claims *JWTClaim, err er
 	if err != nil {
 		return nil, err
 	}
-	claims, ok := token.Claims.(*JWTClaim)
+	claims, ok := token.Claims.(*dto.JWTClaim)
 	if !ok {
 		err = errors.New("couldn't parse claims")
 		return nil, err
@@ -60,20 +57,9 @@ func (auth AuthImpl) ValidateToken(signedToken string) (claims *JWTClaim, err er
 		err = errors.New("token expired")
 		return nil, err
 	}
-
-	intUserID, _ := strconv.Atoi(claims.UserID)
-	_, recordError := auth.userRepository.FindUserById(intUserID)
-
-	if recordError != nil {
-		err = errors.New("invalid token")
-		return nil, err
-	}
-
 	return claims, nil
 }
 
-func AuthInit(userRepository repository.UserRepository) *AuthImpl {
-	return &AuthImpl{
-		userRepository: userRepository,
-	}
+func AuthInit() *AuthImpl {
+	return &AuthImpl{}
 }

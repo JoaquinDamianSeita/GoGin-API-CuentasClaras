@@ -45,10 +45,6 @@ var operationHdlerSet = wire.NewSet(handlers.OperationHandlerInit,
 	wire.Bind(new(handlers.OperationHandler), new(*handlers.OperationHandlerImpl)),
 )
 
-var authSet = wire.NewSet(auth.AuthInit,
-	wire.Bind(new(auth.Auth), new(*auth.AuthImpl)),
-)
-
 func Init() *Initialization {
 	wire.Build(
 		NewInitialization, db, userHdlerSet, operationHdlerSet,
