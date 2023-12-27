@@ -23,6 +23,7 @@ Generate wire file:
 wire gen GoGin-API-CuentasClaras/config
 ```
 
+
 .env:
 
 ``` go
