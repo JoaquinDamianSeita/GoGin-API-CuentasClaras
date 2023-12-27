@@ -58,9 +58,9 @@ func (u MockOperationRepositoryOperations) FindOperationsByUser(user dao.User) (
 func (u MockOperationRepositoryOperations) FindOperationByUserAndId(user dao.User, operationID int) (dao.Operation, error) {
 	date, _ := time.Parse(time.RFC3339, "2023-10-23T21:33:03.73297-03:00")
 
-	if operationID == 1 {
+	if operationID == 1 || operationID == 3 {
 		return dao.Operation{
-			ID:     1,
+			ID:     operationID,
 			Type:   "income",
 			Amount: 1200.5,
 			Date:   date,
@@ -78,6 +78,13 @@ func (u MockOperationRepositoryOperations) FindOperationByUserAndId(user dao.Use
 
 func (u MockOperationRepositoryOperations) Save(operation *dao.Operation) (dao.Operation, error) {
 	if operation.Description == "Payment for work" {
+		return dao.Operation{}, errors.New("Invalid operation.")
+	}
+	return dao.Operation{}, nil
+}
+
+func (u MockOperationRepositoryOperations) Update(operation *dao.Operation) (dao.Operation, error) {
+	if operation.ID == 3 {
 		return dao.Operation{}, errors.New("Invalid operation.")
 	}
 	return dao.Operation{}, nil
@@ -180,26 +187,78 @@ func TestOperationServiceImpl_Create(t *testing.T) {
 	var tests = []testhelpers.TestInterfaceStructure{
 		{
 			Name:         "when the operation is created successfully",
-			Params:       dto.CreateOperationRequest{Type: "income", Amount: 200.50, Date: validDate, Description: "Payment for services", CategoryID: "1"},
+			Params:       dto.OperationRequest{Type: "income", Amount: 200.50, Date: validDate, Description: "Payment for services", CategoryID: "1"},
 			ExpectedCode: http.StatusCreated,
 			ExpectedBody: "{\"message\":\"Operation successfully created.\"}",
 		},
 		{
 			Name:         "when the operation has invalid category ID",
-			Params:       dto.CreateOperationRequest{Type: "income", Amount: 200.50, Date: validDate, Description: "Payment for services", CategoryID: "2"},
+			Params:       dto.OperationRequest{Type: "income", Amount: 200.50, Date: validDate, Description: "Payment for services", CategoryID: "2"},
 			ExpectedCode: http.StatusUnprocessableEntity,
 			ExpectedBody: "{\"error\":\"Invalid category.\"}",
 		},
 		{
 			Name:         "when there is an error in the creation of the operation",
-			Params:       dto.CreateOperationRequest{Type: "expense", Amount: 200.50, Date: validDate, Description: "Payment for work", CategoryID: "1"},
+			Params:       dto.OperationRequest{Type: "expense", Amount: 200.50, Date: validDate, Description: "Payment for work", CategoryID: "1"},
 			ExpectedCode: http.StatusUnprocessableEntity,
 			ExpectedBody: "{\"error\":\"An error occurred in the creation of the operation.\"}",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.Name, func(t *testing.T) {
-			code, response := operationService.Create(dao.User{ID: 1}, tt.Params.(dto.CreateOperationRequest))
+			code, response := operationService.Create(dao.User{ID: 1}, tt.Params.(dto.OperationRequest))
+
+			testhelpers.AssertExpectedCodeAndResponseServiceDto(t, tt, code, response)
+		})
+	}
+}
+
+func TestOperationServiceImpl_Update(t *testing.T) {
+	userRepository := &MockUserRepositoryOperations{}
+	operationRepository := &MockOperationRepositoryOperations{}
+	categoryRepository := &MockCategoryRepositoryOperations{}
+	operationService := OperationServiceInit(userRepository, operationRepository, categoryRepository)
+	validDate := time.Now().Add(-time.Hour).Format(time.RFC3339)
+
+	var tests = []testhelpers.TestInterfaceStructure{
+		{
+			Name:         "when the operation is updated successfully",
+			Params:       dto.OperationRequest{Type: "income", Amount: 200.50, Date: validDate, Description: "Payment for services", CategoryID: "1"},
+			ExpectedCode: http.StatusOK,
+			ExpectedBody: "{\"message\":\"Operation successfully updated.\"}",
+		},
+		{
+			Name:         "when the operation is not found",
+			Params:       dto.OperationRequest{Type: "income", Amount: 200.50, Date: validDate, Description: "Payment for services", CategoryID: "1"},
+			ExpectedCode: http.StatusNotFound,
+			ExpectedBody: "{\"error\":\"Not found.\"}",
+		},
+		{
+			Name:         "when the operation has invalid category ID",
+			Params:       dto.OperationRequest{Type: "income", Amount: 200.50, Date: validDate, Description: "Payment for services", CategoryID: "2"},
+			ExpectedCode: http.StatusUnprocessableEntity,
+			ExpectedBody: "{\"error\":\"Invalid category.\"}",
+		},
+		{
+			Name:         "when there is an error in the update of the operation",
+			Params:       dto.OperationRequest{Type: "expense", Amount: 200.50, Date: validDate, Description: "Payment for work", CategoryID: "1"},
+			ExpectedCode: http.StatusUnprocessableEntity,
+			ExpectedBody: "{\"error\":\"An error occurred in the update of the operation.\"}",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.Name, func(t *testing.T) {
+			operation_id := 1
+
+			if tt.Name == "when the operation is not found" {
+				operation_id = 2
+			}
+
+			if tt.Name == "when there is an error in the update of the operation" {
+				operation_id = 3
+			}
+
+			code, response := operationService.Update(dao.User{ID: 1}, tt.Params.(dto.OperationRequest), operation_id)
 
 			testhelpers.AssertExpectedCodeAndResponseServiceDto(t, tt, code, response)
 		})

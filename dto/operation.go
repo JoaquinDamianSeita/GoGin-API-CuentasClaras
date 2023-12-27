@@ -25,7 +25,7 @@ type TransformedShowCategory struct {
 	Description string `json:"description"`
 }
 
-type CreateOperationRequest struct {
+type OperationRequest struct {
 	Type        string  `json:"type"`
 	Amount      float64 `json:"amount"`
 	Date        string  `json:"date"`

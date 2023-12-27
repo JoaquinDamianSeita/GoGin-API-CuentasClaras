@@ -14,7 +14,8 @@ import (
 type OperationService interface {
 	Index(user dao.User) (int, []dto.TransformedOperation)
 	Show(user dao.User, operationID int) (int, interface{})
-	Create(user dao.User, createOperationRequest dto.CreateOperationRequest) (int, map[string]any)
+	Create(user dao.User, operationRequest dto.OperationRequest) (int, interface{})
+	Update(user dao.User, operationRequest dto.OperationRequest, operationID int) (int, interface{})
 }
 
 type OperationServiceImpl struct {
@@ -69,19 +70,19 @@ func (u OperationServiceImpl) Show(user dao.User, operationID int) (int, interfa
 	return http.StatusOK, TransformedOperation
 }
 
-func (u OperationServiceImpl) Create(user dao.User, createOperationRequest dto.CreateOperationRequest) (int, map[string]any) {
-	if invalidCategoryID(createOperationRequest.CategoryID, u.categoryRepository) {
+func (u OperationServiceImpl) Create(user dao.User, operationRequest dto.OperationRequest) (int, interface{}) {
+	if invalidCategoryID(operationRequest.CategoryID, u.categoryRepository) {
 		return http.StatusUnprocessableEntity, gin.H{"error": "Invalid category."}
 	}
 
-	dateOperation, _ := time.Parse(time.RFC3339, createOperationRequest.Date)
+	dateOperation, _ := time.Parse(time.RFC3339, operationRequest.Date)
 
 	operationDao := dao.Operation{
-		Type:        createOperationRequest.Type,
-		Amount:      createOperationRequest.Amount,
+		Type:        operationRequest.Type,
+		Amount:      operationRequest.Amount,
 		Date:        dateOperation,
 		Category:    createCategoryOperation,
-		Description: createOperationRequest.Description,
+		Description: operationRequest.Description,
 		UserID:      uint(user.ID),
 	}
 
@@ -91,6 +92,36 @@ func (u OperationServiceImpl) Create(user dao.User, createOperationRequest dto.C
 	}
 
 	return http.StatusCreated, gin.H{"message": "Operation successfully created."}
+}
+
+func (u OperationServiceImpl) Update(user dao.User, operationRequest dto.OperationRequest, operationID int) (int, interface{}) {
+	invalidOperationID, operation := validateOperationID(operationID, user, u.operationRepository)
+	if invalidOperationID {
+		return http.StatusNotFound, gin.H{"error": "Not found."}
+	}
+
+	if invalidCategoryID(operationRequest.CategoryID, u.categoryRepository) {
+		return http.StatusUnprocessableEntity, gin.H{"error": "Invalid category."}
+	}
+
+	dateOperation, _ := time.Parse(time.RFC3339, operationRequest.Date)
+
+	operationDao := dao.Operation{
+		ID:          operation.ID,
+		Type:        operationRequest.Type,
+		Amount:      operationRequest.Amount,
+		Date:        dateOperation,
+		Category:    createCategoryOperation,
+		Description: operationRequest.Description,
+		UserID:      uint(user.ID),
+	}
+
+	_, recordError := u.operationRepository.Update(&operationDao)
+	if recordError != nil {
+		return http.StatusUnprocessableEntity, gin.H{"error": "An error occurred in the update of the operation."}
+	}
+
+	return http.StatusOK, gin.H{"message": "Operation successfully updated."}
 }
 
 func invalidCategoryID(categoryID string, categoryRepository repository.CategoryRepository) bool {
@@ -104,6 +135,11 @@ func invalidCategoryID(categoryID string, categoryRepository repository.Category
 	category, errFindCategory := categoryRepository.FindCategoryById(categoryIdInt)
 	createCategoryOperation = category
 	return errFindCategory != nil
+}
+
+func validateOperationID(operationID int, user dao.User, operationRepository repository.OperationRepository) (bool, dao.Operation) {
+	operation, errFindOperation := operationRepository.FindOperationByUserAndId(user, operationID)
+	return errFindOperation != nil, operation
 }
 
 func OperationServiceInit(userRepository repository.UserRepository, operationRepository repository.OperationRepository, categoryRepository repository.CategoryRepository) *OperationServiceImpl {

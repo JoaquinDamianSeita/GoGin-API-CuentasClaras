@@ -10,12 +10,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var createOperationRequest dto.CreateOperationRequest
+var operationRequest dto.OperationRequest
 
 type OperationHandler interface {
 	Index(c *gin.Context)
 	Show(c *gin.Context)
 	Create(c *gin.Context)
+	Update(ctx *gin.Context)
 }
 
 type OperationHandlerImpl struct {
@@ -34,31 +35,43 @@ func (u OperationHandlerImpl) Show(ctx *gin.Context) {
 }
 
 func (u OperationHandlerImpl) Create(ctx *gin.Context) {
-	validationError := ctx.ShouldBindJSON(&createOperationRequest)
+	validationError := ctx.ShouldBindJSON(&operationRequest)
 	if validationError != nil || invalidType() || invalidAmount() || invalidDate() {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid parameters."})
 		return
 	}
-	code, response := u.svc.Create(ParseUserFromContext(ctx), createOperationRequest)
+	code, response := u.svc.Create(ParseUserFromContext(ctx), operationRequest)
+	ctx.JSON(code, response)
+}
+
+func (u OperationHandlerImpl) Update(ctx *gin.Context) {
+	operationID, _ := strconv.Atoi(ctx.Param("id"))
+	validationError := ctx.ShouldBindJSON(&operationRequest)
+	// log.Fatal(operationID, validationError != nil, invalidType(), invalidAmount(), invalidDate())
+	if validationError != nil || invalidType() || invalidAmount() || invalidDate() {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid parameters."})
+		return
+	}
+	code, response := u.svc.Update(ParseUserFromContext(ctx), operationRequest, operationID)
 	ctx.JSON(code, response)
 }
 
 func invalidType() bool {
-	if createOperationRequest.Type == "" {
+	if operationRequest.Type == "" {
 		return true
 	}
-	return createOperationRequest.Type != "income" && createOperationRequest.Type != "expense"
+	return operationRequest.Type != "income" && operationRequest.Type != "expense"
 }
 
 func invalidAmount() bool {
-	return createOperationRequest.Amount <= 0.0
+	return operationRequest.Amount <= 0.0
 }
 
 func invalidDate() bool {
-	if createOperationRequest.Date == "" {
+	if operationRequest.Date == "" {
 		return true
 	}
-	parsedDate, err := time.Parse(time.RFC3339, createOperationRequest.Date)
+	parsedDate, err := time.Parse(time.RFC3339, operationRequest.Date)
 	return err != nil || parsedDate.After(time.Now())
 }
 

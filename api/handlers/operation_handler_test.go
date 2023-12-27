@@ -59,22 +59,32 @@ func (m *MockOperationService) Show(user dao.User, operationID int) (int, interf
 	}
 }
 
-func (m *MockOperationService) Create(user dao.User, createOperationRequest dto.CreateOperationRequest) (int, map[string]any) {
-	if createOperationRequest.Type == "invalid" ||
-		createOperationRequest.Amount == 0.0 ||
-		createOperationRequest.Date == "2023-11-01T00:00:00Z" {
-		return http.StatusBadRequest, gin.H{"error": "Invalid parameters."}
-	}
-
-	if createOperationRequest.CategoryID == "2" {
+func (m *MockOperationService) Create(user dao.User, operationRequest dto.OperationRequest) (int, interface{}) {
+	if operationRequest.CategoryID == "2" {
 		return http.StatusUnprocessableEntity, gin.H{"error": "Invalid Category."}
 	}
 
-	if createOperationRequest.Description == "Payment for work" {
+	if operationRequest.Description == "Payment for work" {
 		return http.StatusUnprocessableEntity, gin.H{"error": "An error occurred in the creation of the operation."}
 	}
 
 	return http.StatusCreated, gin.H{"message": "Operation successfully created."}
+}
+
+func (m *MockOperationService) Update(user dao.User, operationRequest dto.OperationRequest, operationID int) (int, interface{}) {
+	if operationID == 2 {
+		return http.StatusNotFound, gin.H{"error": "Not found."}
+	}
+
+	if operationRequest.CategoryID == "2" {
+		return http.StatusUnprocessableEntity, gin.H{"error": "Invalid Category."}
+	}
+
+	if operationID == 3 {
+		return http.StatusUnprocessableEntity, gin.H{"error": "An error occurred in the creation of the operation."}
+	}
+
+	return http.StatusOK, gin.H{"message": "Operation successfully created."}
 }
 
 func TestOperationHandlerImpl_Index(t *testing.T) {
@@ -184,7 +194,7 @@ func TestOperationHandlerImpl_Create(t *testing.T) {
 		},
 		{
 			Name:         "when the operation has invalid date",
-			Params:       `{"type": "income", "amount": 200.50, "date": "2023-11-01T00:00:00Z", "description": "Payment for services", "category_id": "1"}`,
+			Params:       `{"type": "income", "amount": 200.50, "date": "", "description": "Payment for services", "category_id": "1"}`,
 			ExpectedCode: http.StatusBadRequest,
 			ExpectedBody: "{\"error\":\"Invalid parameters.\"}",
 		},
@@ -208,6 +218,83 @@ func TestOperationHandlerImpl_Create(t *testing.T) {
 			ctx.Set("user", dao.User{ID: 1})
 
 			operationHandler.Create(ctx)
+
+			testhelpers.AssertExpectedCodeAndBodyResponse(t, tt, responseRecorder)
+		})
+	}
+}
+
+func TestOperationHandlerImpl_Update(t *testing.T) {
+	operationService := &MockOperationService{}
+	operationHandler := OperationHandlerInit(operationService)
+	serviceUri := "/api/operations"
+
+	var tests = []testhelpers.TestStructure{
+		{
+			Name:         "when the operation is created successfully",
+			Params:       `{"type": "income", "amount": 200.50, "date": "2023-11-02T23:07:00Z", "description": "Payment for services", "category_id": "1"}`,
+			ExpectedCode: http.StatusOK,
+			ExpectedBody: "{\"message\":\"Operation successfully created.\"}",
+		},
+		{
+			Name:         "when the operation is not found",
+			Params:       `{"type": "income", "amount": 200.50, "date": "2023-11-02T23:07:00Z", "description": "Payment for services", "category_id": "1"}`,
+			ExpectedCode: http.StatusNotFound,
+			ExpectedBody: "{\"error\":\"Not found.\"}",
+		},
+		{
+			Name:         "when the operation has invalid type",
+			Params:       `{"type": "invalid", "amount": 200.50, "date": "2023-11-02T23:07:00Z", "description": "Payment for services", "category_id": "1"}`,
+			ExpectedCode: http.StatusBadRequest,
+			ExpectedBody: "{\"error\":\"Invalid parameters.\"}",
+		},
+		{
+			Name:         "when the operation has invalid amount",
+			Params:       `{"type": "income", "amount": 0.0, "date": "2023-11-02T23:07:00Z", "description": "Payment for services", "category_id": "1"}`,
+			ExpectedCode: http.StatusBadRequest,
+			ExpectedBody: "{\"error\":\"Invalid parameters.\"}",
+		},
+		{
+			Name:         "when the operation has invalid date",
+			Params:       `{"type": "income", "amount": 200.50, "date": "", "description": "Payment for services", "category_id": "1"}`,
+			ExpectedCode: http.StatusBadRequest,
+			ExpectedBody: "{\"error\":\"Invalid parameters.\"}",
+		},
+		{
+			Name:         "when there is an error in the creation of the operation",
+			Params:       `{"type": "expense", "amount": 200.50, "date": "2023-11-02T23:07:00Z", "description": "Payment for work", "category_id": "1"}`,
+			ExpectedCode: http.StatusUnprocessableEntity,
+			ExpectedBody: "{\"error\":\"An error occurred in the creation of the operation.\"}",
+		},
+		{
+			Name:         "when the operation has invalid category ID",
+			Params:       `{"type": "income", "amount": 200.50, "date": "2023-11-02T23:07:00Z", "description": "Payment for services", "category_id": "2"}`,
+			ExpectedCode: http.StatusUnprocessableEntity,
+			ExpectedBody: "{\"error\":\"Invalid Category.\"}",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.Name, func(t *testing.T) {
+			operation_id := 1
+
+			if tt.Name == "when the operation is not found" {
+				operation_id = 2
+			} else if tt.Name == "when there is an error in the creation of the operation" {
+				operation_id = 3
+			}
+
+			ctx, responseRecorder := testhelpers.MockPutRequest(tt.Params, serviceUri)
+
+			ctx.Set("user", dao.User{ID: 1})
+
+			ctx.Params = []gin.Param{
+				{
+					Key:   "id",
+					Value: strconv.Itoa(operation_id),
+				},
+			}
+
+			operationHandler.Update(ctx)
 
 			testhelpers.AssertExpectedCodeAndBodyResponse(t, tt, responseRecorder)
 		})
