@@ -47,6 +47,7 @@ func (u OperationHandlerImpl) Create(ctx *gin.Context) {
 func (u OperationHandlerImpl) Update(ctx *gin.Context) {
 	operationID, _ := strconv.Atoi(ctx.Param("id"))
 	validationError := ctx.ShouldBindJSON(&operationRequest)
+	// log.Fatal(operationID, validationError != nil, invalidType(), invalidAmount(), invalidDate())
 	if validationError != nil || invalidType() || invalidAmount() || invalidDate() {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid parameters."})
 		return

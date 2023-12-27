@@ -88,7 +88,7 @@ func (u OperationServiceImpl) Create(user dao.User, operationRequest dto.Operati
 
 	_, recordError := u.operationRepository.Save(&operationDao)
 	if recordError != nil {
-		return http.StatusUnprocessableEntity, gin.H{"error": "An error occurred while updating the operation."}
+		return http.StatusUnprocessableEntity, gin.H{"error": "An error occurred in the creation of the operation."}
 	}
 
 	return http.StatusCreated, gin.H{"message": "Operation successfully created."}
@@ -118,10 +118,10 @@ func (u OperationServiceImpl) Update(user dao.User, operationRequest dto.Operati
 
 	_, recordError := u.operationRepository.Update(&operationDao)
 	if recordError != nil {
-		return http.StatusUnprocessableEntity, gin.H{"error": "An error occurred in the creation of the operation."}
+		return http.StatusUnprocessableEntity, gin.H{"error": "An error occurred in the update of the operation."}
 	}
 
-	return http.StatusCreated, gin.H{"message": "Operation successfully updated."}
+	return http.StatusOK, gin.H{"message": "Operation successfully updated."}
 }
 
 func invalidCategoryID(categoryID string, categoryRepository repository.CategoryRepository) bool {

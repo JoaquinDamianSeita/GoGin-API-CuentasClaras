@@ -39,6 +39,14 @@ func MockGetRequest(uri string) (*gin.Context, *httptest.ResponseRecorder) {
 	return ctx, responseRecorder
 }
 
+func MockPutRequest(request_body string, uri string) (*gin.Context, *httptest.ResponseRecorder) {
+	responseRecorder := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(responseRecorder)
+	ctx.Request = httptest.NewRequest("PUT", uri, strings.NewReader(request_body))
+	ctx.Request.Header.Set("Content-Type", "application/json")
+	return ctx, responseRecorder
+}
+
 func AssertExpectedCodeAndBodyResponse(t *testing.T, tt TestStructure, responseRecorder *httptest.ResponseRecorder) {
 	assert.Equal(t, tt.ExpectedCode, responseRecorder.Code)
 	if tt.ExpectedBody != "" {
