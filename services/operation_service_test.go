@@ -90,6 +90,13 @@ func (u MockOperationRepositoryOperations) Update(operation *dao.Operation) (dao
 	return dao.Operation{}, nil
 }
 
+func (u MockOperationRepositoryOperations) Delete(operation *dao.Operation) (dao.Operation, error) {
+	if operation.ID == 3 {
+		return dao.Operation{}, errors.New("Invalid operation.")
+	}
+	return dao.Operation{}, nil
+}
+
 type MockCategoryRepositoryOperations struct{}
 
 func (u MockCategoryRepositoryOperations) FindCategoryByOperation(operation dao.Operation) (dao.Category, error) {
@@ -259,6 +266,49 @@ func TestOperationServiceImpl_Update(t *testing.T) {
 			}
 
 			code, response := operationService.Update(dao.User{ID: 1}, tt.Params.(dto.OperationRequest), operation_id)
+
+			testhelpers.AssertExpectedCodeAndResponseServiceDto(t, tt, code, response)
+		})
+	}
+}
+
+func TestOperationServiceImpl_Delete(t *testing.T) {
+	userRepository := &MockUserRepositoryOperations{}
+	operationRepository := &MockOperationRepositoryOperations{}
+	categoryRepository := &MockCategoryRepositoryOperations{}
+	operationService := OperationServiceInit(userRepository, operationRepository, categoryRepository)
+
+	var tests = []testhelpers.TestInterfaceStructure{
+		{
+			Name:         "when the operation is found",
+			Params:       "",
+			ExpectedCode: http.StatusOK,
+			ExpectedBody: "{\"message\":\"Operation successfully deleted.\"}",
+		},
+		{
+			Name:         "when the operation is not found",
+			Params:       "",
+			ExpectedCode: http.StatusNotFound,
+			ExpectedBody: "{\"error\":\"Not found.\"}",
+		},
+		{
+			Name:         "when there is an error while deleting the operation",
+			Params:       "",
+			ExpectedCode: http.StatusUnprocessableEntity,
+			ExpectedBody: "{\"error\":\"An error occurred while deleting the operation.\"}",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.Name, func(t *testing.T) {
+			operation_id := 1
+
+			if tt.Name == "when the operation is not found" {
+				operation_id = 2
+			} else if tt.Name == "when there is an error while deleting the operation" {
+				operation_id = 3
+			}
+
+			code, response := operationService.Delete(dao.User{ID: 1}, operation_id)
 
 			testhelpers.AssertExpectedCodeAndResponseServiceDto(t, tt, code, response)
 		})

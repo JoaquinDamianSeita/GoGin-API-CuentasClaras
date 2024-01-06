@@ -47,6 +47,13 @@ func MockPutRequest(request_body string, uri string) (*gin.Context, *httptest.Re
 	return ctx, responseRecorder
 }
 
+func MockDeleteRequest(uri string) (*gin.Context, *httptest.ResponseRecorder) {
+	responseRecorder := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(responseRecorder)
+	ctx.Request = httptest.NewRequest("DELETE", uri, nil)
+	return ctx, responseRecorder
+}
+
 func AssertExpectedCodeAndBodyResponse(t *testing.T, tt TestStructure, responseRecorder *httptest.ResponseRecorder) {
 	assert.Equal(t, tt.ExpectedCode, responseRecorder.Code)
 	if tt.ExpectedBody != "" {

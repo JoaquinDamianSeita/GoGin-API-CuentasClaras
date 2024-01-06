@@ -16,6 +16,7 @@ type OperationService interface {
 	Show(user dao.User, operationID int) (int, interface{})
 	Create(user dao.User, operationRequest dto.OperationRequest) (int, interface{})
 	Update(user dao.User, operationRequest dto.OperationRequest, operationID int) (int, interface{})
+	Delete(user dao.User, operationID int) (int, interface{})
 }
 
 type OperationServiceImpl struct {
@@ -48,9 +49,9 @@ func (u OperationServiceImpl) Index(user dao.User) (int, []dto.TransformedOperat
 }
 
 func (u OperationServiceImpl) Show(user dao.User, operationID int) (int, interface{}) {
-	operation, recordErrorOperation := u.operationRepository.FindOperationByUserAndId(user, operationID)
+	invalidOperationID, operation := validateOperationID(operationID, user, u.operationRepository)
 
-	if recordErrorOperation != nil {
+	if invalidOperationID {
 		return http.StatusNotFound, gin.H{"error": "Not found."}
 	}
 
@@ -122,6 +123,21 @@ func (u OperationServiceImpl) Update(user dao.User, operationRequest dto.Operati
 	}
 
 	return http.StatusOK, gin.H{"message": "Operation successfully updated."}
+}
+
+func (u OperationServiceImpl) Delete(user dao.User, operationID int) (int, interface{}) {
+	invalidOperationID, operation := validateOperationID(operationID, user, u.operationRepository)
+
+	if invalidOperationID {
+		return http.StatusNotFound, gin.H{"error": "Not found."}
+	}
+
+	_, recordError := u.operationRepository.Delete(&operation)
+	if recordError != nil {
+		return http.StatusUnprocessableEntity, gin.H{"error": "An error occurred while deleting the operation."}
+	}
+
+	return http.StatusOK, gin.H{"message": "Operation successfully deleted."}
 }
 
 func invalidCategoryID(categoryID string, categoryRepository repository.CategoryRepository) bool {

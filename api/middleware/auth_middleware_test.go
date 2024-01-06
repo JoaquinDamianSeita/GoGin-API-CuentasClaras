@@ -5,7 +5,6 @@ import (
 	"GoGin-API-CuentasClaras/dao"
 	"GoGin-API-CuentasClaras/dto"
 	"errors"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -27,7 +26,6 @@ func (auth *MockAuthValidator) GenerateJWT(userId string) (expiresIn int64, toke
 }
 
 func (auth *MockAuthValidator) ValidateToken(signedToken string) (claims *dto.JWTClaim, err error) {
-	log.Println(signedToken)
 	if signedToken == "valid_token" {
 		claims = &dto.JWTClaim{UserID: "1"}
 		return claims, nil

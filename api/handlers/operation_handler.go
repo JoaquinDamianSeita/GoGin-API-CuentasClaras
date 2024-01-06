@@ -17,6 +17,7 @@ type OperationHandler interface {
 	Show(c *gin.Context)
 	Create(c *gin.Context)
 	Update(ctx *gin.Context)
+	Delete(ctx *gin.Context)
 }
 
 type OperationHandlerImpl struct {
@@ -47,12 +48,17 @@ func (u OperationHandlerImpl) Create(ctx *gin.Context) {
 func (u OperationHandlerImpl) Update(ctx *gin.Context) {
 	operationID, _ := strconv.Atoi(ctx.Param("id"))
 	validationError := ctx.ShouldBindJSON(&operationRequest)
-	// log.Fatal(operationID, validationError != nil, invalidType(), invalidAmount(), invalidDate())
 	if validationError != nil || invalidType() || invalidAmount() || invalidDate() {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid parameters."})
 		return
 	}
 	code, response := u.svc.Update(ParseUserFromContext(ctx), operationRequest, operationID)
+	ctx.JSON(code, response)
+}
+
+func (u OperationHandlerImpl) Delete(ctx *gin.Context) {
+	operationID, _ := strconv.Atoi(ctx.Param("id"))
+	code, response := u.svc.Delete(ParseUserFromContext(ctx), operationID)
 	ctx.JSON(code, response)
 }
 
