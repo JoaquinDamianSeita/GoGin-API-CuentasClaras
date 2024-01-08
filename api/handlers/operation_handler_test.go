@@ -87,6 +87,18 @@ func (m *MockOperationService) Update(user dao.User, operationRequest dto.Operat
 	return http.StatusOK, gin.H{"message": "Operation successfully created."}
 }
 
+func (m *MockOperationService) Delete(user dao.User, operationID int) (int, interface{}) {
+	if operationID == 2 {
+		return http.StatusNotFound, gin.H{"error": "Not found."}
+	}
+
+	if operationID == 3 {
+		return http.StatusUnprocessableEntity, gin.H{"error": "An error occurred while deleting the operation."}
+	}
+
+	return http.StatusOK, gin.H{"message": "Operation successfully deleted."}
+}
+
 func TestOperationHandlerImpl_Index(t *testing.T) {
 	operationService := &MockOperationService{}
 	operationHandler := OperationHandlerInit(operationService)
@@ -295,6 +307,59 @@ func TestOperationHandlerImpl_Update(t *testing.T) {
 			}
 
 			operationHandler.Update(ctx)
+
+			testhelpers.AssertExpectedCodeAndBodyResponse(t, tt, responseRecorder)
+		})
+	}
+}
+
+func TestOperationHandlerImpl_Delete(t *testing.T) {
+	operationService := &MockOperationService{}
+	operationHandler := OperationHandlerInit(operationService)
+	serviceUri := "/api/operations"
+
+	var tests = []testhelpers.TestStructure{
+		{
+			Name:         "when the operation is found",
+			Params:       "",
+			ExpectedCode: http.StatusOK,
+			ExpectedBody: "{\"message\":\"Operation successfully deleted.\"}",
+		},
+		{
+			Name:         "when the operation is not found",
+			Params:       "",
+			ExpectedCode: http.StatusNotFound,
+			ExpectedBody: "{\"error\":\"Not found.\"}",
+		},
+		{
+			Name:         "when there is an error while deleting the operation",
+			Params:       "",
+			ExpectedCode: http.StatusUnprocessableEntity,
+			ExpectedBody: "{\"error\":\"An error occurred while deleting the operation.\"}",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.Name, func(t *testing.T) {
+			operation_id := 1
+
+			if tt.Name == "when the operation is not found" {
+				operation_id = 2
+			} else if tt.Name == "when there is an error while deleting the operation" {
+				operation_id = 3
+			}
+
+			ctx, responseRecorder := testhelpers.MockDeleteRequest(serviceUri)
+
+			ctx.Set("user", dao.User{ID: 1})
+
+			ctx.Params = []gin.Param{
+				{
+					Key:   "id",
+					Value: strconv.Itoa(operation_id),
+				},
+			}
+
+			operationHandler.Delete(ctx)
 
 			testhelpers.AssertExpectedCodeAndBodyResponse(t, tt, responseRecorder)
 		})

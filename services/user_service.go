@@ -6,7 +6,6 @@ import (
 	dto "GoGin-API-CuentasClaras/dto"
 	"GoGin-API-CuentasClaras/repository"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -58,7 +57,6 @@ func (u UserServiceImpl) LoginUser(loginUserRequest dto.LoginRequest) (int, map[
 }
 
 func (u UserServiceImpl) CurrentUser(user dao.User) (int, map[string]any) {
-	log.Println(user)
 	return http.StatusOK, gin.H{"email": user.Email, "username": user.Username}
 }
 
