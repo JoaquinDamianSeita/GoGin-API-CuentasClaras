@@ -34,3 +34,10 @@ func OperationRoutes(router *gin.RouterGroup, initConfig *config.Initialization)
 		operation.DELETE("/:id", middleware.AuthMiddleware(initConfig), initConfig.OperationHdler.Delete)
 	}
 }
+
+func CategoriesRoutes(router *gin.RouterGroup, initConfig *config.Initialization) {
+	category := router.Group("/categories")
+	{
+		category.GET("", middleware.AuthMiddleware(initConfig), initConfig.CategoryHdler.Index)
+	}
+}

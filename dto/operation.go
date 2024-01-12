@@ -19,12 +19,6 @@ type TransformedShowOperation struct {
 	Description string                  `json:"description"`
 }
 
-type TransformedShowCategory struct {
-	Name        string `json:"name"`
-	Color       string `json:"color"`
-	Description string `json:"description"`
-}
-
 type OperationRequest struct {
 	Type        string  `json:"type"`
 	Amount      float64 `json:"amount"`

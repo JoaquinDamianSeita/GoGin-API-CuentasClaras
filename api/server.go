@@ -23,6 +23,7 @@ func Init(init *config.Initialization) *gin.Engine {
 	routes.HealthRoutes(api, init)
 	routes.UserRoutes(api, init)
 	routes.OperationRoutes(api, init)
+	routes.CategoriesRoutes(api, init)
 
 	return router
 }

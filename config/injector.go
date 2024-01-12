@@ -25,6 +25,10 @@ var operationServiceSet = wire.NewSet(services.OperationServiceInit,
 	wire.Bind(new(services.OperationService), new(*services.OperationServiceImpl)),
 )
 
+var categoryServiceSet = wire.NewSet(services.CategoryServiceInit,
+	wire.Bind(new(services.CategoryService), new(*services.CategoryServiceImpl)),
+)
+
 var userRepoSet = wire.NewSet(repository.UserRepositoryInit,
 	wire.Bind(new(repository.UserRepository), new(*repository.UserRepositoryImpl)),
 )
@@ -45,11 +49,15 @@ var operationHdlerSet = wire.NewSet(handlers.OperationHandlerInit,
 	wire.Bind(new(handlers.OperationHandler), new(*handlers.OperationHandlerImpl)),
 )
 
+var categoryHdlerSet = wire.NewSet(handlers.CategoryHandlerInit,
+	wire.Bind(new(handlers.CategoryHandler), new(*handlers.CategoryHandlerImpl)),
+)
+
 func Init() *Initialization {
 	wire.Build(
 		NewInitialization, db, userHdlerSet, operationHdlerSet,
 		userServiceSet, operationServiceSet, categoryRepoSet,
-		userRepoSet, operationRepoSet,
+		userRepoSet, operationRepoSet, categoryServiceSet, categoryHdlerSet,
 	)
 	return nil
 }

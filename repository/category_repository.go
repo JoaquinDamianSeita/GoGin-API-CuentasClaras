@@ -11,6 +11,8 @@ type CategoryRepository interface {
 	FindCategoryByOperation(operation dao.Operation) (dao.Category, error)
 	Save(category *dao.Category) (dao.Category, error)
 	FindCategoryById(id int) (dao.Category, error)
+	FindCategoriesByUser(user dao.User) ([]dao.Category, error)
+	FindDefaultCategories() ([]dao.Category, error)
 }
 
 type CategoryRepositoryImpl struct {
@@ -37,6 +39,22 @@ func (u CategoryRepositoryImpl) FindCategoryByOperation(operation dao.Operation)
 func (u CategoryRepositoryImpl) Save(category *dao.Category) (dao.Category, error) {
 	err := u.db.Create(&category).Error
 	return *category, err
+}
+
+func (u CategoryRepositoryImpl) FindCategoriesByUser(user dao.User) ([]dao.Category, error) {
+	var categories []dao.Category
+	if err := u.db.Where("user_id = ?", user.ID).Find(&categories).Error; err != nil {
+		return nil, err
+	}
+	return categories, nil
+}
+
+func (u CategoryRepositoryImpl) FindDefaultCategories() ([]dao.Category, error) {
+	var categories []dao.Category
+	if err := u.db.Where("is_default = ? AND user_id IS NULL", true).Find(&categories).Error; err != nil {
+		return nil, err
+	}
+	return categories, nil
 }
 
 func CategoryRepositoryInit(db *gorm.DB) *CategoryRepositoryImpl {

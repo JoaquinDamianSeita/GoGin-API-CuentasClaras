@@ -26,7 +26,9 @@ func Init() *Initialization {
 	operationServiceImpl := services.OperationServiceInit(userRepositoryImpl, operationRepositoryImpl, categoryRepositoryImpl)
 	userHandlerImpl := handlers.UserHandlerInit(userServiceImpl)
 	operationHandlerImpl := handlers.OperationHandlerInit(operationServiceImpl)
-	initialization := NewInitialization(userRepositoryImpl, operationRepositoryImpl, categoryRepositoryImpl, userServiceImpl, operationServiceImpl, userHandlerImpl, operationHandlerImpl, authImpl)
+	categoryServiceImpl := services.CategoryServiceInit(categoryRepositoryImpl, authImpl)
+	categoryHandlerImpl := handlers.CategoryHandlerInit(categoryServiceImpl)
+	initialization := NewInitialization(userRepositoryImpl, operationRepositoryImpl, categoryRepositoryImpl, userServiceImpl, operationServiceImpl, userHandlerImpl, operationHandlerImpl, authImpl, categoryHandlerImpl)
 	return initialization
 }
 
@@ -38,6 +40,8 @@ var userServiceSet = wire.NewSet(services.UserServiceInit, wire.Bind(new(service
 
 var operationServiceSet = wire.NewSet(services.OperationServiceInit, wire.Bind(new(services.OperationService), new(*services.OperationServiceImpl)))
 
+var categoryServiceSet = wire.NewSet(services.CategoryServiceInit, wire.Bind(new(services.CategoryService), new(*services.CategoryServiceImpl)))
+
 var userRepoSet = wire.NewSet(repository.UserRepositoryInit, wire.Bind(new(repository.UserRepository), new(*repository.UserRepositoryImpl)))
 
 var operationRepoSet = wire.NewSet(repository.OperationRepositoryInit, wire.Bind(new(repository.OperationRepository), new(*repository.OperationRepositoryImpl)))
@@ -47,3 +51,5 @@ var categoryRepoSet = wire.NewSet(repository.CategoryRepositoryInit, wire.Bind(n
 var userHdlerSet = wire.NewSet(handlers.UserHandlerInit, wire.Bind(new(handlers.UserHandler), new(*handlers.UserHandlerImpl)))
 
 var operationHdlerSet = wire.NewSet(handlers.OperationHandlerInit, wire.Bind(new(handlers.OperationHandler), new(*handlers.OperationHandlerImpl)))
+
+var categoryHdlerSet = wire.NewSet(handlers.CategoryHandlerInit, wire.Bind(new(handlers.CategoryHandler), new(*handlers.CategoryHandlerImpl)))
