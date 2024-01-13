@@ -8,4 +8,6 @@ type Category struct {
 	Name        string
 	Description string
 	Color       string
+	UserID      uint `gorm:"default:null; index" json:"-"`
+	IsDefault   bool `gorm:"default:false" json:"is_default"`
 }

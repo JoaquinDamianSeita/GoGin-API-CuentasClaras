@@ -20,7 +20,6 @@ type OperationService interface {
 }
 
 type OperationServiceImpl struct {
-	userRepository      repository.UserRepository
 	operationRepository repository.OperationRepository
 	categoryRepository  repository.CategoryRepository
 }
@@ -65,6 +64,7 @@ func (u OperationServiceImpl) Show(user dao.User, operationID int) (int, interfa
 			Name:        operation.Category.Name,
 			Color:       operation.Category.Color,
 			Description: operation.Category.Description,
+			IsDefault:   operation.Category.IsDefault,
 		},
 	}
 
@@ -158,9 +158,8 @@ func validateOperationID(operationID int, user dao.User, operationRepository rep
 	return errFindOperation != nil, operation
 }
 
-func OperationServiceInit(userRepository repository.UserRepository, operationRepository repository.OperationRepository, categoryRepository repository.CategoryRepository) *OperationServiceImpl {
+func OperationServiceInit(operationRepository repository.OperationRepository, categoryRepository repository.CategoryRepository) *OperationServiceImpl {
 	return &OperationServiceImpl{
-		userRepository:      userRepository,
 		operationRepository: operationRepository,
 		categoryRepository:  categoryRepository,
 	}
