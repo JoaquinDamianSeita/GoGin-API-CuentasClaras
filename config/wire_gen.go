@@ -23,10 +23,10 @@ func Init() *Initialization {
 	categoryRepositoryImpl := repository.CategoryRepositoryInit(gormDB)
 	authImpl := auth.AuthInit()
 	userServiceImpl := services.UserServiceInit(userRepositoryImpl, authImpl)
-	operationServiceImpl := services.OperationServiceInit(userRepositoryImpl, operationRepositoryImpl, categoryRepositoryImpl)
+	operationServiceImpl := services.OperationServiceInit(operationRepositoryImpl, categoryRepositoryImpl)
 	userHandlerImpl := handlers.UserHandlerInit(userServiceImpl)
 	operationHandlerImpl := handlers.OperationHandlerInit(operationServiceImpl)
-	categoryServiceImpl := services.CategoryServiceInit(categoryRepositoryImpl, authImpl)
+	categoryServiceImpl := services.CategoryServiceInit(categoryRepositoryImpl)
 	categoryHandlerImpl := handlers.CategoryHandlerInit(categoryServiceImpl)
 	initialization := NewInitialization(userRepositoryImpl, operationRepositoryImpl, categoryRepositoryImpl, userServiceImpl, operationServiceImpl, userHandlerImpl, operationHandlerImpl, authImpl, categoryHandlerImpl)
 	return initialization

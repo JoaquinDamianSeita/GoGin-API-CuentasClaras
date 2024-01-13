@@ -34,7 +34,6 @@ func TestOperationsIntegration_Index_ValidRequest(t *testing.T) {
 			if tt.Name == "when the user has operations" {
 				request.Header.Set("Authorization", "Bearer "+token)
 			} else {
-				_, anotherToken, _ := authService.GenerateJWT("2")
 				request.Header.Set("Authorization", "Bearer "+anotherToken)
 			}
 
@@ -80,7 +79,7 @@ func TestOperationsIntegration_Show_ValidRequest(t *testing.T) {
 			Name:         "when the operation is found",
 			Params:       "",
 			ExpectedCode: http.StatusOK,
-			ExpectedBody: "{\"id\":1,\"type\":\"income\",\"amount\":1200.5,\"date\":\"2023-10-23T21:33:03.73297Z\",\"category\":{\"name\":\"Work\",\"color\":\"#fdg123\",\"description\":\"Work\"},\"description\":\"Salario\"}",
+			ExpectedBody: "{\"id\":1,\"type\":\"income\",\"amount\":1200.5,\"date\":\"2023-10-23T21:33:03.73297Z\",\"category\":{\"name\":\"Work\",\"color\":\"#fdg123\",\"description\":\"Work\",\"is_default\":true},\"description\":\"Salario\"}",
 		},
 	}
 	for _, tt := range tests {
@@ -185,7 +184,7 @@ func TestOperationsIntegration_Create_InvalidRequest(t *testing.T) {
 		},
 		{
 			Name:         "when the operation has invalid category ID",
-			Params:       `{"type": "income", "amount": 200.50, "date": "` + validDate + `", "description": "Payment for services", "category_id": "2"}`,
+			Params:       `{"type": "income", "amount": 200.50, "date": "` + validDate + `", "description": "Payment for services", "category_id": "3"}`,
 			ExpectedCode: http.StatusUnprocessableEntity,
 			ExpectedBody: "{\"error\":\"Invalid category.\"}",
 		},
@@ -273,7 +272,7 @@ func TestOperationsIntegration_Update_InvalidRequest(t *testing.T) {
 		},
 		{
 			Name:         "when the operation has invalid category ID",
-			Params:       `{"type": "income", "amount": 200.50, "date": "` + validDate + `", "description": "Payment for services", "category_id": "2"}`,
+			Params:       `{"type": "income", "amount": 200.50, "date": "` + validDate + `", "description": "Payment for services", "category_id": "3"}`,
 			ExpectedCode: http.StatusUnprocessableEntity,
 			ExpectedBody: "{\"error\":\"Invalid category.\"}",
 		},

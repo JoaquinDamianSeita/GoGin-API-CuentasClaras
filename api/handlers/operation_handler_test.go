@@ -51,6 +51,7 @@ func (m *MockOperationService) Show(user dao.User, operationID int) (int, interf
 				Name:        "Work",
 				Color:       "#fdg123",
 				Description: "Work",
+				IsDefault:   true,
 			},
 			Description: "Salario",
 		}
@@ -145,7 +146,7 @@ func TestOperationHandlerImpl_Show(t *testing.T) {
 			Name:         "when the operation is found",
 			Params:       "",
 			ExpectedCode: http.StatusOK,
-			ExpectedBody: "{\"id\":1,\"type\":\"income\",\"amount\":1200.5,\"date\":\"2023-10-23T21:33:03.73297-03:00\",\"category\":{\"name\":\"Work\",\"color\":\"#fdg123\",\"description\":\"Work\"},\"description\":\"Salario\"}",
+			ExpectedBody: "{\"id\":1,\"type\":\"income\",\"amount\":1200.5,\"date\":\"2023-10-23T21:33:03.73297-03:00\",\"category\":{\"name\":\"Work\",\"color\":\"#fdg123\",\"description\":\"Work\",\"is_default\":true},\"description\":\"Salario\"}",
 		},
 		{
 			Name:         "when the operation is not found",

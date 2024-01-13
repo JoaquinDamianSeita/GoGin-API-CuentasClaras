@@ -10,28 +10,6 @@ import (
 	"time"
 )
 
-type MockUserRepositoryOperations struct{}
-
-func (m *MockUserRepositoryOperations) Save(user *dao.User) (dao.User, error) {
-	return dao.User{}, nil
-}
-
-func (m *MockUserRepositoryOperations) FindUserById(id int) (dao.User, error) {
-	if id == 1 || id == 2 {
-		return dao.User{
-			ID:       id,
-			Username: "test.user",
-			Email:    "test.user@example.com",
-		}, nil
-	} else {
-		return dao.User{}, errors.New("User not found.")
-	}
-}
-
-func (m *MockUserRepositoryOperations) FindUserByEmail(email string) (dao.User, error) {
-	return dao.User{}, nil
-}
-
 type MockOperationRepositoryOperations struct{}
 
 func (u MockOperationRepositoryOperations) FindOperationsByUser(user dao.User) ([]dao.Operation, error) {
@@ -68,6 +46,7 @@ func (u MockOperationRepositoryOperations) FindOperationByUserAndId(user dao.Use
 				Name:        "Work",
 				Color:       "#fdg123",
 				Description: "Work",
+				IsDefault:   true,
 			},
 			Description: "Salario",
 		}, nil
@@ -114,11 +93,18 @@ func (u MockCategoryRepositoryOperations) FindCategoryById(id int) (dao.Category
 	return dao.Category{}, errors.New("Category not found.")
 }
 
+func (u MockCategoryRepositoryOperations) FindCategoriesByUser(user dao.User) ([]dao.Category, error) {
+	return []dao.Category{}, nil
+}
+
+func (u MockCategoryRepositoryOperations) FindDefaultCategories() ([]dao.Category, error) {
+	return []dao.Category{}, nil
+}
+
 func TestOperationServiceImpl_Index(t *testing.T) {
-	userRepository := &MockUserRepositoryOperations{}
 	operationRepository := &MockOperationRepositoryOperations{}
 	categoryRepository := &MockCategoryRepositoryOperations{}
-	operationService := OperationServiceInit(userRepository, operationRepository, categoryRepository)
+	operationService := OperationServiceInit(operationRepository, categoryRepository)
 
 	var tests = []testhelpers.TestInterfaceStructure{
 		{
@@ -150,17 +136,16 @@ func TestOperationServiceImpl_Index(t *testing.T) {
 }
 
 func TestOperationServiceImpl_Show(t *testing.T) {
-	userRepository := &MockUserRepositoryOperations{}
 	operationRepository := &MockOperationRepositoryOperations{}
 	categoryRepository := &MockCategoryRepositoryOperations{}
-	operationService := OperationServiceInit(userRepository, operationRepository, categoryRepository)
+	operationService := OperationServiceInit(operationRepository, categoryRepository)
 
 	var tests = []testhelpers.TestInterfaceStructure{
 		{
 			Name:         "when the operation is found",
 			Params:       "",
 			ExpectedCode: http.StatusOK,
-			ExpectedBody: "{\"id\":1,\"type\":\"income\",\"amount\":1200.5,\"date\":\"2023-10-24T00:33:03.73297Z\",\"category\":{\"name\":\"Work\",\"color\":\"#fdg123\",\"description\":\"Work\"},\"description\":\"Salario\"}",
+			ExpectedBody: "{\"id\":1,\"type\":\"income\",\"amount\":1200.5,\"date\":\"2023-10-24T00:33:03.73297Z\",\"category\":{\"name\":\"Work\",\"color\":\"#fdg123\",\"description\":\"Work\",\"is_default\":true},\"description\":\"Salario\"}",
 		},
 		{
 			Name:         "when the operation is not found",
@@ -185,10 +170,9 @@ func TestOperationServiceImpl_Show(t *testing.T) {
 }
 
 func TestOperationServiceImpl_Create(t *testing.T) {
-	userRepository := &MockUserRepositoryOperations{}
 	operationRepository := &MockOperationRepositoryOperations{}
 	categoryRepository := &MockCategoryRepositoryOperations{}
-	operationService := OperationServiceInit(userRepository, operationRepository, categoryRepository)
+	operationService := OperationServiceInit(operationRepository, categoryRepository)
 	validDate := time.Now().Add(-time.Hour).Format(time.RFC3339)
 
 	var tests = []testhelpers.TestInterfaceStructure{
@@ -221,10 +205,9 @@ func TestOperationServiceImpl_Create(t *testing.T) {
 }
 
 func TestOperationServiceImpl_Update(t *testing.T) {
-	userRepository := &MockUserRepositoryOperations{}
 	operationRepository := &MockOperationRepositoryOperations{}
 	categoryRepository := &MockCategoryRepositoryOperations{}
-	operationService := OperationServiceInit(userRepository, operationRepository, categoryRepository)
+	operationService := OperationServiceInit(operationRepository, categoryRepository)
 	validDate := time.Now().Add(-time.Hour).Format(time.RFC3339)
 
 	var tests = []testhelpers.TestInterfaceStructure{
@@ -273,10 +256,9 @@ func TestOperationServiceImpl_Update(t *testing.T) {
 }
 
 func TestOperationServiceImpl_Delete(t *testing.T) {
-	userRepository := &MockUserRepositoryOperations{}
 	operationRepository := &MockOperationRepositoryOperations{}
 	categoryRepository := &MockCategoryRepositoryOperations{}
-	operationService := OperationServiceInit(userRepository, operationRepository, categoryRepository)
+	operationService := OperationServiceInit(operationRepository, categoryRepository)
 
 	var tests = []testhelpers.TestInterfaceStructure{
 		{

@@ -1,7 +1,6 @@
 package services
 
 import (
-	"GoGin-API-CuentasClaras/api/auth"
 	"GoGin-API-CuentasClaras/dao"
 	"GoGin-API-CuentasClaras/dto"
 	"GoGin-API-CuentasClaras/repository"
@@ -14,7 +13,6 @@ type CategoryService interface {
 
 type CategoryServiceImpl struct {
 	categoryRepository repository.CategoryRepository
-	auth               auth.Auth
 }
 
 func (u CategoryServiceImpl) Index(user dao.User) (int, []dto.TransformedIndexCategory) {
@@ -27,7 +25,7 @@ func (u CategoryServiceImpl) Index(user dao.User) (int, []dto.TransformedIndexCa
 
 func FormatCategories(userCategories []dao.Category, defaultCategories []dao.Category) []dto.TransformedIndexCategory {
 	transformedCategories := []dto.TransformedIndexCategory{}
-	userCategoriesAndDefaults := append(userCategories, defaultCategories...)
+	userCategoriesAndDefaults := append(defaultCategories, userCategories...)
 	for _, category := range userCategoriesAndDefaults {
 		transformed := dto.TransformedIndexCategory{
 			Id:          category.ID,
@@ -41,9 +39,8 @@ func FormatCategories(userCategories []dao.Category, defaultCategories []dao.Cat
 	return transformedCategories
 }
 
-func CategoryServiceInit(categoryRepository repository.CategoryRepository, auth auth.Auth) *CategoryServiceImpl {
+func CategoryServiceInit(categoryRepository repository.CategoryRepository) *CategoryServiceImpl {
 	return &CategoryServiceImpl{
 		categoryRepository: categoryRepository,
-		auth:               auth,
 	}
 }

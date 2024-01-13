@@ -19,6 +19,7 @@ import (
 
 var db *gorm.DB
 var token string
+var anotherToken string
 var authService *auth.AuthImpl
 
 func TestMain(m *testing.M) {
@@ -43,7 +44,6 @@ func cleanDB() {
 }
 
 func setupTest() *gin.Engine {
-	fmt.Println("Before Test Execution.")
 	userRepositoryImpl := repository.UserRepositoryInit(db)
 	categoryRepositoryImpl := repository.CategoryRepositoryInit(db)
 	operationRepositoryImpl := repository.OperationRepositoryInit(db)
@@ -55,7 +55,7 @@ func setupTest() *gin.Engine {
 		Email:    "pedro.fuentes@gmail.com",
 		Password: "password123",
 	})
-	userRepositoryImpl.Save(&dao.User{
+	anotherUser, _ := userRepositoryImpl.Save(&dao.User{
 		Username: "jose.marin",
 		Email:    "jose.marin@gmail.com",
 		Password: "password123",
@@ -64,6 +64,14 @@ func setupTest() *gin.Engine {
 		Name:        "Work",
 		Color:       "#fdg123",
 		Description: "Work",
+		IsDefault:   true,
+	})
+	categoryRepositoryImpl.Save(&dao.Category{
+		Name:        "Custom",
+		Color:       "#123fge",
+		Description: "Custom",
+		IsDefault:   false,
+		UserID:      uint(anotherUser.ID),
 	})
 	operationRepositoryImpl.Save(&dao.Operation{
 		UserID:      uint(user.ID),
@@ -74,7 +82,9 @@ func setupTest() *gin.Engine {
 		Description: "Salario",
 	})
 	authService = auth.AuthInit()
-	_, token, _ = authService.GenerateJWT(fmt.Sprintf(strconv.Itoa(user.ID)))
+	_, token, _ = authService.GenerateJWT(strconv.Itoa(user.ID))
+	_, anotherToken, _ = authService.GenerateJWT(strconv.Itoa(anotherUser.ID))
+
 	init := config.Init()
 	return api.Init(init)
 }
