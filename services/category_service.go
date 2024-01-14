@@ -5,10 +5,13 @@ import (
 	"GoGin-API-CuentasClaras/dto"
 	"GoGin-API-CuentasClaras/repository"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 type CategoryService interface {
 	Index(user dao.User) (int, []dto.TransformedIndexCategory)
+	Create(user dao.User, categoryCreateRequest dto.CategoryCreateRequest) (int, interface{})
 }
 
 type CategoryServiceImpl struct {
@@ -21,6 +24,22 @@ func (u CategoryServiceImpl) Index(user dao.User) (int, []dto.TransformedIndexCa
 	transformedResponse := FormatCategories(userCategories, defaultCategories)
 
 	return http.StatusOK, transformedResponse
+}
+
+func (u CategoryServiceImpl) Create(user dao.User, categoryCreateRequest dto.CategoryCreateRequest) (int, interface{}) {
+	categoryDao := dao.Category{
+		Name:        categoryCreateRequest.Name,
+		Color:       categoryCreateRequest.Color,
+		Description: categoryCreateRequest.Description,
+		UserID:      uint(user.ID),
+	}
+
+	_, recordError := u.categoryRepository.Save(&categoryDao)
+	if recordError != nil {
+		return http.StatusUnprocessableEntity, gin.H{"error": "An error occurred in the creation of the category."}
+	}
+
+	return http.StatusCreated, gin.H{"message": "Category successfully created."}
 }
 
 func FormatCategories(userCategories []dao.Category, defaultCategories []dao.Category) []dto.TransformedIndexCategory {

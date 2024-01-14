@@ -51,3 +51,14 @@ Live Reload Golang Development With Gin:
 gin --appPort 3000 --port 8080 --immediate
 ```
 
+Generate coverage test file:
+
+``` bash
+go test -coverprofile=c.out ./...
+```
+
+See HTML coverage test file:
+
+``` bash
+go test -coverprofile=c.out ./...
+```

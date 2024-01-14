@@ -20,10 +20,12 @@ func Init(init *config.Initialization) *gin.Engine {
 	router.Use(middleware.ErrorHandler())
 
 	api := router.Group("/api")
+	middlewareAuth := middleware.AuthMiddleware(init)
+
 	routes.HealthRoutes(api, init)
-	routes.UserRoutes(api, init)
-	routes.OperationRoutes(api, init)
-	routes.CategoriesRoutes(api, init)
+	routes.UserRoutes(api, init, middlewareAuth)
+	routes.OperationRoutes(api, init, middlewareAuth)
+	routes.CategoriesRoutes(api, init, middlewareAuth)
 
 	return router
 }

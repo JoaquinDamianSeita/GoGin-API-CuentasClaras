@@ -68,7 +68,7 @@ func setupTest() *gin.Engine {
 	})
 	categoryRepositoryImpl.Save(&dao.Category{
 		Name:        "Custom",
-		Color:       "#123fge",
+		Color:       "#6495ed",
 		Description: "Custom",
 		IsDefault:   false,
 		UserID:      uint(anotherUser.ID),

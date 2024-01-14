@@ -2,6 +2,7 @@ package services
 
 import (
 	dao "GoGin-API-CuentasClaras/dao"
+	"GoGin-API-CuentasClaras/dto"
 	testhelpers "GoGin-API-CuentasClaras/test_helpers"
 	"errors"
 	"net/http"
@@ -15,6 +16,9 @@ func (u MockCategoryRepositoryCategories) FindCategoryByOperation(operation dao.
 }
 
 func (u MockCategoryRepositoryCategories) Save(category *dao.Category) (dao.Category, error) {
+	if category.Description == "Payment for work" {
+		return dao.Category{}, errors.New("Invalid category.")
+	}
 	return dao.Category{}, nil
 }
 
@@ -31,7 +35,7 @@ func (u MockCategoryRepositoryCategories) FindCategoriesByUser(user dao.User) ([
 		categoriesResponse := append(categories, dao.Category{
 			ID:          2,
 			Name:        "Custom",
-			Color:       "#123fge",
+			Color:       "#6495ed",
 			Description: "Custom",
 			IsDefault:   false,
 		})
@@ -68,7 +72,7 @@ func TestCategoryServiceImpl_Index(t *testing.T) {
 			Params:       "",
 			ExpectedCode: http.StatusOK,
 			ExpectedBody: "[{\"id\":1,\"name\":\"Work\",\"color\":\"#fdg123\",\"description\":\"Work\",\"is_default\":true}," +
-				"{\"id\":2,\"name\":\"Custom\",\"color\":\"#123fge\",\"description\":\"Custom\",\"is_default\":false}]",
+				"{\"id\":2,\"name\":\"Custom\",\"color\":\"#6495ed\",\"description\":\"Custom\",\"is_default\":false}]",
 		},
 	}
 	for _, tt := range tests {
@@ -80,6 +84,33 @@ func TestCategoryServiceImpl_Index(t *testing.T) {
 			}
 
 			code, response := categoryService.Index(user)
+
+			testhelpers.AssertExpectedCodeAndResponseServiceDto(t, tt, code, response)
+		})
+	}
+}
+
+func TestCategoryServiceImpl_Create(t *testing.T) {
+	categoryRepository := &MockCategoryRepositoryCategories{}
+	categoryService := CategoryServiceInit(categoryRepository)
+
+	var tests = []testhelpers.TestInterfaceStructure{
+		{
+			Name:         "when the category is created successfully",
+			Params:       dto.CategoryCreateRequest{Name: "Custom", Color: "#6495ed", Description: "Custom"},
+			ExpectedCode: http.StatusCreated,
+			ExpectedBody: "{\"message\":\"Category successfully created.\"}",
+		},
+		{
+			Name:         "when there is an error in the creation of the category",
+			Params:       dto.CategoryCreateRequest{Name: "Custom", Color: "#6495ed", Description: "Payment for work"},
+			ExpectedCode: http.StatusUnprocessableEntity,
+			ExpectedBody: "{\"error\":\"An error occurred in the creation of the category.\"}",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.Name, func(t *testing.T) {
+			code, response := categoryService.Create(dao.User{ID: 1}, tt.Params.(dto.CategoryCreateRequest))
 
 			testhelpers.AssertExpectedCodeAndResponseServiceDto(t, tt, code, response)
 		})
