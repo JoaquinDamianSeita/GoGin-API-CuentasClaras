@@ -23,7 +23,7 @@ func TestCategoriesIntegration_Index_ValidRequest(t *testing.T) {
 			Params:       "",
 			ExpectedCode: http.StatusOK,
 			ExpectedBody: "[{\"id\":1,\"name\":\"Work\",\"color\":\"#fdg123\",\"description\":\"Work\",\"is_default\":true}," +
-				"{\"id\":2,\"name\":\"Custom\",\"color\":\"#123fge\",\"description\":\"Custom\",\"is_default\":false}]",
+				"{\"id\":2,\"name\":\"Custom\",\"color\":\"#6495ed\",\"description\":\"Custom\",\"is_default\":false}]",
 		},
 	}
 	for _, tt := range tests {
@@ -62,6 +62,62 @@ func TestCategoriesIntegration_Index_InvalidRequest(t *testing.T) {
 			request.Header.Set("Content-Type", "application/json")
 			_, anotherToken, _ := authService.GenerateJWT("3")
 			request.Header.Set("Authorization", "Bearer "+anotherToken)
+
+			responseRecorder := httptest.NewRecorder()
+			router.ServeHTTP(responseRecorder, request)
+
+			testhelpers.AssertExpectedCodeAndBodyResponse(t, tt, responseRecorder)
+		})
+	}
+	teardownTest()
+}
+
+func TestCategoriesIntegration_Create_ValidRequest(t *testing.T) {
+	router := setupTest()
+	var tests = []testhelpers.TestStructure{
+		{
+			Name:         "when the category is created successfully",
+			Params:       `{"name": "Custom", "color": "#6495ed", "description": "Custom"}`,
+			ExpectedCode: http.StatusCreated,
+			ExpectedBody: "{\"message\":\"Category successfully created.\"}",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.Name, func(t *testing.T) {
+			request, _ := http.NewRequest("POST", "/api/categories", strings.NewReader(tt.Params))
+			request.Header.Set("Content-Type", "application/json")
+			request.Header.Set("Authorization", "Bearer "+token)
+
+			responseRecorder := httptest.NewRecorder()
+			router.ServeHTTP(responseRecorder, request)
+
+			testhelpers.AssertExpectedCodeAndBodyResponse(t, tt, responseRecorder)
+		})
+	}
+	teardownTest()
+}
+
+func TestCategoriesIntegration_Create_InvalidRequest(t *testing.T) {
+	router := setupTest()
+	var tests = []testhelpers.TestStructure{
+		{
+			Name:         "when the category has invalid name",
+			Params:       `{"name": "", "color": "#6495ed", "description": "Custom"}`,
+			ExpectedCode: http.StatusBadRequest,
+			ExpectedBody: "{\"error\":\"Invalid parameters.\"}",
+		},
+		{
+			Name:         "when the category has invalid color",
+			Params:       `{"name": "Custom", "color": "193zge", "description": "Custom"}`,
+			ExpectedCode: http.StatusBadRequest,
+			ExpectedBody: "{\"error\":\"Invalid parameters.\"}",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.Name, func(t *testing.T) {
+			request, _ := http.NewRequest("POST", "/api/categories", strings.NewReader(tt.Params))
+			request.Header.Set("Content-Type", "application/json")
+			request.Header.Set("Authorization", "Bearer "+token)
 
 			responseRecorder := httptest.NewRecorder()
 			router.ServeHTTP(responseRecorder, request)
