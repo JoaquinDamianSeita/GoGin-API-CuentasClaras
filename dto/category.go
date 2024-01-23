@@ -20,7 +20,7 @@ type TransformedIndexCategory struct {
 	IsDefault   bool   `json:"is_default"`
 }
 
-type CategoryCreateRequest struct {
+type CategoryRequest struct {
 	Name        string `json:"name"`
 	Color       string `json:"color"`
 	Description string `json:"description"`

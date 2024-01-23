@@ -97,20 +97,20 @@ func TestCategoryServiceImpl_Create(t *testing.T) {
 	var tests = []testhelpers.TestInterfaceStructure{
 		{
 			Name:         "when the category is created successfully",
-			Params:       dto.CategoryCreateRequest{Name: "Custom", Color: "#6495ed", Description: "Custom"},
+			Params:       dto.CategoryRequest{Name: "Custom", Color: "#6495ed", Description: "Custom"},
 			ExpectedCode: http.StatusCreated,
 			ExpectedBody: "{\"message\":\"Category successfully created.\"}",
 		},
 		{
 			Name:         "when there is an error in the creation of the category",
-			Params:       dto.CategoryCreateRequest{Name: "Custom", Color: "#6495ed", Description: "Payment for work"},
+			Params:       dto.CategoryRequest{Name: "Custom", Color: "#6495ed", Description: "Payment for work"},
 			ExpectedCode: http.StatusUnprocessableEntity,
 			ExpectedBody: "{\"error\":\"An error occurred in the creation of the category.\"}",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.Name, func(t *testing.T) {
-			code, response := categoryService.Create(dao.User{ID: 1}, tt.Params.(dto.CategoryCreateRequest))
+			code, response := categoryService.Create(dao.User{ID: 1}, tt.Params.(dto.CategoryRequest))
 
 			testhelpers.AssertExpectedCodeAndResponseServiceDto(t, tt, code, response)
 		})

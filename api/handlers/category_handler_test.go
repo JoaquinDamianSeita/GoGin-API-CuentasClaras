@@ -27,7 +27,7 @@ func (m *MockCategoryService) Index(user dao.User) (int, []dto.TransformedIndexC
 	return http.StatusOK, transformedResponse
 }
 
-func (m *MockCategoryService) Create(user dao.User, categoryCreateRequest dto.CategoryCreateRequest) (int, interface{}) {
+func (m *MockCategoryService) Create(user dao.User, categoryCreateRequest dto.CategoryRequest) (int, interface{}) {
 	if categoryCreateRequest.Description == "Payment for work" {
 		return http.StatusUnprocessableEntity, gin.H{"error": "An error occurred in the creation of the category."}
 	}

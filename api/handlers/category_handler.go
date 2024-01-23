@@ -4,11 +4,12 @@ import (
 	"GoGin-API-CuentasClaras/dto"
 	"GoGin-API-CuentasClaras/services"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
-var categoryCreateRequest dto.CategoryCreateRequest
+var categoryCreateRequest dto.CategoryRequest
 
 type CategoryHandler interface {
 	Index(c *gin.Context)
@@ -31,6 +32,17 @@ func (u CategoryHandlerImpl) Create(ctx *gin.Context) {
 		return
 	}
 	code, response := u.svc.Create(ParseUserFromContext(ctx), categoryCreateRequest)
+	ctx.JSON(code, response)
+}
+
+func (u CategoryHandlerImpl) Update(ctx *gin.Context) {
+	categoryID, _ := strconv.Atoi(ctx.Param("id"))
+	validationError := ctx.ShouldBindJSON(&categoryCreateRequest)
+	if validationError != nil || invalidName() || invalidColor() {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid parameters."})
+		return
+	}
+	code, response := u.svc.Update(ParseUserFromContext(ctx), categoryCreateRequest, categoryID)
 	ctx.JSON(code, response)
 }
 
