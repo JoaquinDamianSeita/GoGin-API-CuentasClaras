@@ -101,6 +101,14 @@ func (u MockCategoryRepositoryOperations) FindDefaultCategories() ([]dao.Categor
 	return []dao.Category{}, nil
 }
 
+func (u MockCategoryRepositoryOperations) FindCategoryByUserAndId(user dao.User, categoryID int) (dao.Category, error) {
+	return dao.Category{}, nil
+}
+
+func (u MockCategoryRepositoryOperations) Update(category *dao.Category) (dao.Category, error) {
+	return dao.Category{}, nil
+}
+
 func TestOperationServiceImpl_Index(t *testing.T) {
 	operationRepository := &MockOperationRepositoryOperations{}
 	categoryRepository := &MockCategoryRepositoryOperations{}

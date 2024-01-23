@@ -82,10 +82,10 @@ func (m *MockOperationService) Update(user dao.User, operationRequest dto.Operat
 	}
 
 	if operationID == 3 {
-		return http.StatusUnprocessableEntity, gin.H{"error": "An error occurred in the creation of the operation."}
+		return http.StatusUnprocessableEntity, gin.H{"error": "An error occurred in the update of the operation."}
 	}
 
-	return http.StatusOK, gin.H{"message": "Operation successfully created."}
+	return http.StatusOK, gin.H{"message": "Operation successfully updated."}
 }
 
 func (m *MockOperationService) Delete(user dao.User, operationID int) (int, interface{}) {
@@ -244,10 +244,10 @@ func TestOperationHandlerImpl_Update(t *testing.T) {
 
 	var tests = []testhelpers.TestStructure{
 		{
-			Name:         "when the operation is created successfully",
+			Name:         "when the operation is updated successfully",
 			Params:       `{"type": "income", "amount": 200.50, "date": "2023-11-02T23:07:00Z", "description": "Payment for services", "category_id": "1"}`,
 			ExpectedCode: http.StatusOK,
-			ExpectedBody: "{\"message\":\"Operation successfully created.\"}",
+			ExpectedBody: "{\"message\":\"Operation successfully updated.\"}",
 		},
 		{
 			Name:         "when the operation is not found",
@@ -274,10 +274,10 @@ func TestOperationHandlerImpl_Update(t *testing.T) {
 			ExpectedBody: "{\"error\":\"Invalid parameters.\"}",
 		},
 		{
-			Name:         "when there is an error in the creation of the operation",
+			Name:         "when there is an error in the update of the operation",
 			Params:       `{"type": "expense", "amount": 200.50, "date": "2023-11-02T23:07:00Z", "description": "Payment for work", "category_id": "1"}`,
 			ExpectedCode: http.StatusUnprocessableEntity,
-			ExpectedBody: "{\"error\":\"An error occurred in the creation of the operation.\"}",
+			ExpectedBody: "{\"error\":\"An error occurred in the update of the operation.\"}",
 		},
 		{
 			Name:         "when the operation has invalid category ID",
@@ -292,7 +292,7 @@ func TestOperationHandlerImpl_Update(t *testing.T) {
 
 			if tt.Name == "when the operation is not found" {
 				operation_id = 2
-			} else if tt.Name == "when there is an error in the creation of the operation" {
+			} else if tt.Name == "when there is an error in the update of the operation" {
 				operation_id = 3
 			}
 

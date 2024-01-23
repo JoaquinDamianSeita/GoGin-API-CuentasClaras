@@ -10,6 +10,7 @@ import (
 type CategoryRepository interface {
 	FindCategoryByOperation(operation dao.Operation) (dao.Category, error)
 	Save(category *dao.Category) (dao.Category, error)
+	Update(category *dao.Category) (dao.Category, error)
 	FindCategoryById(id int) (dao.Category, error)
 	FindCategoriesByUser(user dao.User) ([]dao.Category, error)
 	FindCategoryByUserAndId(user dao.User, categoryID int) (dao.Category, error)
@@ -32,14 +33,19 @@ func (u CategoryRepositoryImpl) FindCategoryById(id int) (dao.Category, error) {
 	return category, nil
 }
 
-func (u CategoryRepositoryImpl) FindCategoryByOperation(operation dao.Operation) (dao.Category, error) {
-	u.db.Preload("Category").First(&operation)
-	return operation.Category, nil
-}
-
 func (u CategoryRepositoryImpl) Save(category *dao.Category) (dao.Category, error) {
 	err := u.db.Create(&category).Error
 	return *category, err
+}
+
+func (u CategoryRepositoryImpl) Update(category *dao.Category) (dao.Category, error) {
+	err := u.db.Save(&category).Error
+	return *category, err
+}
+
+func (u CategoryRepositoryImpl) FindCategoryByOperation(operation dao.Operation) (dao.Category, error) {
+	u.db.Preload("Category").First(&operation)
+	return operation.Category, nil
 }
 
 func (u CategoryRepositoryImpl) FindCategoriesByUser(user dao.User) ([]dao.Category, error) {

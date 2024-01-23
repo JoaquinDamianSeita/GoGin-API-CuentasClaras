@@ -14,6 +14,7 @@ var categoryCreateRequest dto.CategoryRequest
 type CategoryHandler interface {
 	Index(c *gin.Context)
 	Create(ctx *gin.Context)
+	Update(ctx *gin.Context)
 }
 
 type CategoryHandlerImpl struct {

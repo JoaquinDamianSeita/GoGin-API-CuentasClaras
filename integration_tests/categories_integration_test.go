@@ -127,3 +127,82 @@ func TestCategoriesIntegration_Create_InvalidRequest(t *testing.T) {
 	}
 	teardownTest()
 }
+
+func TestCategoriesIntegration_Update_ValidRequest(t *testing.T) {
+	router := setupTest()
+	var tests = []testhelpers.TestStructure{
+		{
+			Name:         "when the category is update successfully",
+			Params:       `{"name": "Custom", "color": "#6495ed", "description": "Custom"}`,
+			ExpectedCode: http.StatusOK,
+			ExpectedBody: "{\"message\":\"Category successfully updated.\"}",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.Name, func(t *testing.T) {
+			request, _ := http.NewRequest("PUT", "/api/categories/1", strings.NewReader(tt.Params))
+			request.Header.Set("Content-Type", "application/json")
+			request.Header.Set("Authorization", "Bearer "+token)
+
+			responseRecorder := httptest.NewRecorder()
+			router.ServeHTTP(responseRecorder, request)
+
+			testhelpers.AssertExpectedCodeAndBodyResponse(t, tt, responseRecorder)
+		})
+	}
+	teardownTest()
+}
+
+func TestCategoriesIntegration_Update_InvalidRequest(t *testing.T) {
+	router := setupTest()
+	var tests = []testhelpers.TestStructure{
+		{
+			Name:         "when the category is not found",
+			Params:       `{"name": "Custom", "color": "#193zge", "description": "Custom"}`,
+			ExpectedCode: http.StatusNotFound,
+			ExpectedBody: "{\"error\":\"Not found.\"}",
+		},
+		{
+			Name:         "when the category has invalid name",
+			Params:       `{"name": "", "color": "#6495ed", "description": "Custom"}`,
+			ExpectedCode: http.StatusBadRequest,
+			ExpectedBody: "{\"error\":\"Invalid parameters.\"}",
+		},
+		{
+			Name:         "when the category has invalid color",
+			Params:       `{"name": "Custom", "color": "193zge", "description": "Custom"}`,
+			ExpectedCode: http.StatusBadRequest,
+			ExpectedBody: "{\"error\":\"Invalid parameters.\"}",
+		},
+		{
+			Name:         "when the user does not exist",
+			Params:       `{"name": "Custom", "color": "#193zge", "description": "Custom"}`,
+			ExpectedCode: http.StatusUnauthorized,
+			ExpectedBody: "{\"error\":\"Not authorized\"}",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.Name, func(t *testing.T) {
+			categoryId := "1"
+
+			if tt.Name == "when the category is not found" {
+				categoryId = "22"
+			}
+
+			request, _ := http.NewRequest("PUT", "/api/categories/"+categoryId, strings.NewReader(tt.Params))
+			request.Header.Set("Content-Type", "application/json")
+			request.Header.Set("Authorization", "Bearer "+token)
+
+			if tt.Name == "when the user does not exist" {
+				_, anotherToken, _ := authService.GenerateJWT("3")
+				request.Header.Set("Authorization", "Bearer "+anotherToken)
+			}
+
+			responseRecorder := httptest.NewRecorder()
+			router.ServeHTTP(responseRecorder, request)
+
+			testhelpers.AssertExpectedCodeAndBodyResponse(t, tt, responseRecorder)
+		})
+	}
+	teardownTest()
+}

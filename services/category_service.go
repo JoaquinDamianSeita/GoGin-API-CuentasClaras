@@ -5,7 +5,6 @@ import (
 	"GoGin-API-CuentasClaras/dto"
 	"GoGin-API-CuentasClaras/repository"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,6 +12,7 @@ import (
 type CategoryService interface {
 	Index(user dao.User) (int, []dto.TransformedIndexCategory)
 	Create(user dao.User, categoryCreateRequest dto.CategoryRequest) (int, interface{})
+	Update(user dao.User, categoryRequest dto.CategoryRequest, categoryID int) (int, interface{})
 }
 
 type CategoryServiceImpl struct {
@@ -49,19 +49,15 @@ func (u CategoryServiceImpl) Update(user dao.User, categoryRequest dto.CategoryR
 		return http.StatusNotFound, gin.H{"error": "Not found."}
 	}
 
-	dateOperation, _ := time.Parse(time.RFC3339, operationRequest.Date)
-
-	operationDao := dao.Category{
+	categoryDao := dao.Category{
 		ID:          category.ID,
-		Type:        operationRequest.Type,
-		Amount:      operationRequest.Amount,
-		Date:        dateOperation,
-		Category:    createCategoryOperation,
-		Description: operationRequest.Description,
+		Name:        categoryRequest.Name,
+		Color:       categoryRequest.Color,
+		Description: categoryRequest.Description,
 		UserID:      uint(user.ID),
 	}
 
-	_, recordError := u.operationRepository.Update(&operationDao)
+	_, recordError := u.categoryRepository.Update(&categoryDao)
 	if recordError != nil {
 		return http.StatusUnprocessableEntity, gin.H{"error": "An error occurred in the update of the category."}
 	}
