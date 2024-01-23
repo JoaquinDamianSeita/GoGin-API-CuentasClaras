@@ -10,4 +10,5 @@ type Category struct {
 	Color       string
 	UserID      uint `gorm:"default:null; index" json:"-"`
 	IsDefault   bool `gorm:"default:false" json:"is_default"`
+	BaseModel
 }

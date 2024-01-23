@@ -140,9 +140,9 @@ func TestCategoriesIntegration_Update_ValidRequest(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.Name, func(t *testing.T) {
-			request, _ := http.NewRequest("PUT", "/api/categories/1", strings.NewReader(tt.Params))
+			request, _ := http.NewRequest("PUT", "/api/categories/2", strings.NewReader(tt.Params))
 			request.Header.Set("Content-Type", "application/json")
-			request.Header.Set("Authorization", "Bearer "+token)
+			request.Header.Set("Authorization", "Bearer "+anotherToken)
 
 			responseRecorder := httptest.NewRecorder()
 			router.ServeHTTP(responseRecorder, request)
@@ -186,7 +186,7 @@ func TestCategoriesIntegration_Update_InvalidRequest(t *testing.T) {
 			categoryId := "1"
 
 			if tt.Name == "when the category is not found" {
-				categoryId = "22"
+				categoryId = "1"
 			}
 
 			request, _ := http.NewRequest("PUT", "/api/categories/"+categoryId, strings.NewReader(tt.Params))
