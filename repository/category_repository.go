@@ -69,7 +69,7 @@ func (u CategoryRepositoryImpl) FindCategoryByUserAndId(user dao.User, categoryI
 		ID:     categoryID,
 		UserID: uint(user.ID),
 	}
-	err := u.db.First(&category).Error
+	err := u.db.Where("user_id = ? AND id = ?", category.UserID, category.ID).First(&category).Error
 	if err != nil {
 		log.Error("Got and error when find category by id. Error: ", err)
 		return dao.Category{}, err
