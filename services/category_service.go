@@ -13,6 +13,7 @@ type CategoryService interface {
 	Index(user dao.User) (int, []dto.TransformedIndexCategory)
 	Create(user dao.User, categoryCreateRequest dto.CategoryRequest) (int, interface{})
 	Update(user dao.User, categoryRequest dto.CategoryRequest, categoryID int) (int, interface{})
+	Delete(user dao.User, categoryID int) (int, interface{})
 }
 
 type CategoryServiceImpl struct {
@@ -63,6 +64,21 @@ func (u CategoryServiceImpl) Update(user dao.User, categoryRequest dto.CategoryR
 	}
 
 	return http.StatusOK, gin.H{"message": "Category successfully updated."}
+}
+
+func (u CategoryServiceImpl) Delete(user dao.User, categoryID int) (int, interface{}) {
+	invalidCategoryID, category := validateCategoryID(categoryID, user, u.categoryRepository)
+
+	if invalidCategoryID {
+		return http.StatusNotFound, gin.H{"error": "Not found."}
+	}
+
+	_, recordError := u.categoryRepository.Delete(&category)
+	if recordError != nil {
+		return http.StatusUnprocessableEntity, gin.H{"error": "An error occurred while deleting the category."}
+	}
+
+	return http.StatusOK, gin.H{"message": "Category successfully deleted."}
 }
 
 func FormatCategories(userCategories []dao.Category, defaultCategories []dao.Category) []dto.TransformedIndexCategory {

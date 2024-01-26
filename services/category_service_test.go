@@ -25,12 +25,23 @@ func (u MockCategoryRepositoryCategories) Save(category *dao.Category) (dao.Cate
 func (u MockCategoryRepositoryCategories) FindCategoryByUserAndId(user dao.User, categoryID int) (dao.Category, error) {
 	if categoryID == 2 {
 		return dao.Category{}, errors.New("Invalid category.")
+	} else if categoryID == 3 {
+		return dao.Category{
+			ID: 3,
+		}, nil
 	}
 	return dao.Category{}, nil
 }
 
 func (u MockCategoryRepositoryCategories) Update(category *dao.Category) (dao.Category, error) {
 	if category.Description == "Payment for work" {
+		return dao.Category{}, errors.New("Invalid category.")
+	}
+	return dao.Category{}, nil
+}
+
+func (u MockCategoryRepositoryCategories) Delete(category *dao.Category) (dao.Category, error) {
+	if category.ID == 3 {
 		return dao.Category{}, errors.New("Invalid category.")
 	}
 	return dao.Category{}, nil
@@ -168,6 +179,47 @@ func TestCategoryServiceImpl_Update(t *testing.T) {
 			}
 
 			code, response := categoryService.Update(dao.User{ID: 1}, tt.Params.(dto.CategoryRequest), categoryId)
+
+			testhelpers.AssertExpectedCodeAndResponseServiceDto(t, tt, code, response)
+		})
+	}
+}
+
+func TestCategoryServiceImpl_Delete(t *testing.T) {
+	categoryRepository := &MockCategoryRepositoryCategories{}
+	categoryService := CategoryServiceInit(categoryRepository)
+
+	var tests = []testhelpers.TestInterfaceStructure{
+		{
+			Name:         "when the category is found",
+			Params:       "",
+			ExpectedCode: http.StatusOK,
+			ExpectedBody: "{\"message\":\"Category successfully deleted.\"}",
+		},
+		{
+			Name:         "when the category is not found",
+			Params:       "",
+			ExpectedCode: http.StatusNotFound,
+			ExpectedBody: "{\"error\":\"Not found.\"}",
+		},
+		{
+			Name:         "when there is an error while deleting the category",
+			Params:       "",
+			ExpectedCode: http.StatusUnprocessableEntity,
+			ExpectedBody: "{\"error\":\"An error occurred while deleting the category.\"}",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.Name, func(t *testing.T) {
+			categoryId := 1
+
+			if tt.Name == "when the category is not found" {
+				categoryId = 2
+			} else if tt.Name == "when there is an error while deleting the category" {
+				categoryId = 3
+			}
+
+			code, response := categoryService.Delete(dao.User{ID: 1}, categoryId)
 
 			testhelpers.AssertExpectedCodeAndResponseServiceDto(t, tt, code, response)
 		})

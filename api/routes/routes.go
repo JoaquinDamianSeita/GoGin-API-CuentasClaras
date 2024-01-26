@@ -40,5 +40,6 @@ func CategoriesRoutes(router *gin.RouterGroup, initConfig *config.Initialization
 		category.GET("", middleware, initConfig.CategoryHdler.Index)
 		category.POST("", middleware, initConfig.CategoryHdler.Create)
 		category.PUT("/:id", middleware, initConfig.CategoryHdler.Update)
+		category.DELETE("/:id", middleware, initConfig.CategoryHdler.Delete)
 	}
 }

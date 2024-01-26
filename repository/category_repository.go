@@ -11,6 +11,7 @@ type CategoryRepository interface {
 	FindCategoryByOperation(operation dao.Operation) (dao.Category, error)
 	Save(category *dao.Category) (dao.Category, error)
 	Update(category *dao.Category) (dao.Category, error)
+	Delete(category *dao.Category) (dao.Category, error)
 	FindCategoryById(id int) (dao.Category, error)
 	FindCategoriesByUser(user dao.User) ([]dao.Category, error)
 	FindCategoryByUserAndId(user dao.User, categoryID int) (dao.Category, error)
@@ -40,6 +41,11 @@ func (u CategoryRepositoryImpl) Save(category *dao.Category) (dao.Category, erro
 
 func (u CategoryRepositoryImpl) Update(category *dao.Category) (dao.Category, error) {
 	err := u.db.Save(&category).Error
+	return *category, err
+}
+
+func (u CategoryRepositoryImpl) Delete(category *dao.Category) (dao.Category, error) {
+	err := u.db.Delete(&category).Error
 	return *category, err
 }
 

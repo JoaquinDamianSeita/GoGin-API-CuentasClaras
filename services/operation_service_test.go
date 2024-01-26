@@ -109,6 +109,13 @@ func (u MockCategoryRepositoryOperations) Update(category *dao.Category) (dao.Ca
 	return dao.Category{}, nil
 }
 
+func (u MockCategoryRepositoryOperations) Delete(category *dao.Category) (dao.Category, error) {
+	if category.ID == 3 {
+		return dao.Category{}, errors.New("Invalid category.")
+	}
+	return dao.Category{}, nil
+}
+
 func TestOperationServiceImpl_Index(t *testing.T) {
 	operationRepository := &MockOperationRepositoryOperations{}
 	categoryRepository := &MockCategoryRepositoryOperations{}

@@ -15,6 +15,7 @@ type CategoryHandler interface {
 	Index(c *gin.Context)
 	Create(ctx *gin.Context)
 	Update(ctx *gin.Context)
+	Delete(ctx *gin.Context)
 }
 
 type CategoryHandlerImpl struct {
@@ -44,6 +45,12 @@ func (u CategoryHandlerImpl) Update(ctx *gin.Context) {
 		return
 	}
 	code, response := u.svc.Update(ParseUserFromContext(ctx), categoryCreateRequest, categoryID)
+	ctx.JSON(code, response)
+}
+
+func (u CategoryHandlerImpl) Delete(ctx *gin.Context) {
+	categoryID, _ := strconv.Atoi(ctx.Param("id"))
+	code, response := u.svc.Delete(ParseUserFromContext(ctx), categoryID)
 	ctx.JSON(code, response)
 }
 
