@@ -48,6 +48,18 @@ func (m *MockCategoryService) Update(user dao.User, categoryRequest dto.Category
 	return http.StatusOK, gin.H{"message": "Category successfully updated."}
 }
 
+func (m *MockCategoryService) Delete(user dao.User, categoryID int) (int, interface{}) {
+	if categoryID == 2 {
+		return http.StatusNotFound, gin.H{"error": "Not found."}
+	}
+
+	if categoryID == 3 {
+		return http.StatusUnprocessableEntity, gin.H{"error": "An error occurred while deleting the category."}
+	}
+
+	return http.StatusOK, gin.H{"message": "Category successfully deleted."}
+}
+
 func TestCategoryHandlerImpl_Index(t *testing.T) {
 	categoryService := &MockCategoryService{}
 	categoryHandler := CategoryHandlerInit(categoryService)
@@ -125,7 +137,7 @@ func TestCategoryHandlerImpl_Update(t *testing.T) {
 
 	var tests = []testhelpers.TestStructure{
 		{
-			Name:         "when the operation is category successfully",
+			Name:         "when the category is category successfully",
 			Params:       `{"name": "Custom", "color": "#6495ed", "description": "Custom"}`,
 			ExpectedCode: http.StatusOK,
 			ExpectedBody: "{\"message\":\"Category successfully updated.\"}",
@@ -177,6 +189,59 @@ func TestCategoryHandlerImpl_Update(t *testing.T) {
 			}
 
 			categoryHandler.Update(ctx)
+
+			testhelpers.AssertExpectedCodeAndBodyResponse(t, tt, responseRecorder)
+		})
+	}
+}
+
+func TestCategoryHandlerImpl_Delete(t *testing.T) {
+	categoryService := &MockCategoryService{}
+	categoryHandler := CategoryHandlerInit(categoryService)
+	serviceUri := "/api/categories"
+
+	var tests = []testhelpers.TestStructure{
+		{
+			Name:         "when the category is found",
+			Params:       "",
+			ExpectedCode: http.StatusOK,
+			ExpectedBody: "{\"message\":\"Category successfully deleted.\"}",
+		},
+		{
+			Name:         "when the category is not found",
+			Params:       "",
+			ExpectedCode: http.StatusNotFound,
+			ExpectedBody: "{\"error\":\"Not found.\"}",
+		},
+		{
+			Name:         "when there is an error while deleting the category",
+			Params:       "",
+			ExpectedCode: http.StatusUnprocessableEntity,
+			ExpectedBody: "{\"error\":\"An error occurred while deleting the category.\"}",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.Name, func(t *testing.T) {
+			categoryId := 1
+
+			if tt.Name == "when the category is not found" {
+				categoryId = 2
+			} else if tt.Name == "when there is an error while deleting the category" {
+				categoryId = 3
+			}
+
+			ctx, responseRecorder := testhelpers.MockDeleteRequest(serviceUri)
+
+			ctx.Set("user", dao.User{ID: 1})
+
+			ctx.Params = []gin.Param{
+				{
+					Key:   "id",
+					Value: strconv.Itoa(categoryId),
+				},
+			}
+
+			categoryHandler.Delete(ctx)
 
 			testhelpers.AssertExpectedCodeAndBodyResponse(t, tt, responseRecorder)
 		})

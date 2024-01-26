@@ -184,12 +184,69 @@ func TestCategoriesIntegration_Update_InvalidRequest(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.Name, func(t *testing.T) {
 			categoryId := "1"
+			request, _ := http.NewRequest("PUT", "/api/categories/"+categoryId, strings.NewReader(tt.Params))
+			request.Header.Set("Content-Type", "application/json")
+			request.Header.Set("Authorization", "Bearer "+token)
 
-			if tt.Name == "when the category is not found" {
-				categoryId = "1"
+			if tt.Name == "when the user does not exist" {
+				_, anotherToken, _ := authService.GenerateJWT("3")
+				request.Header.Set("Authorization", "Bearer "+anotherToken)
 			}
 
-			request, _ := http.NewRequest("PUT", "/api/categories/"+categoryId, strings.NewReader(tt.Params))
+			responseRecorder := httptest.NewRecorder()
+			router.ServeHTTP(responseRecorder, request)
+
+			testhelpers.AssertExpectedCodeAndBodyResponse(t, tt, responseRecorder)
+		})
+	}
+	teardownTest()
+}
+
+func TestCategoriesIntegration_Delete_ValidRequest(t *testing.T) {
+	router := setupTest()
+	var tests = []testhelpers.TestStructure{
+		{
+			Name:         "when the category is deleted successfully",
+			Params:       "",
+			ExpectedCode: http.StatusOK,
+			ExpectedBody: "{\"message\":\"Category successfully deleted.\"}",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.Name, func(t *testing.T) {
+			request, _ := http.NewRequest("DELETE", "/api/categories/2", strings.NewReader(tt.Params))
+			request.Header.Set("Content-Type", "application/json")
+			request.Header.Set("Authorization", "Bearer "+anotherToken)
+
+			responseRecorder := httptest.NewRecorder()
+			router.ServeHTTP(responseRecorder, request)
+
+			testhelpers.AssertExpectedCodeAndBodyResponse(t, tt, responseRecorder)
+		})
+	}
+	teardownTest()
+}
+
+func TestCategoriesIntegration_Delete_InvalidRequest(t *testing.T) {
+	router := setupTest()
+	var tests = []testhelpers.TestStructure{
+		{
+			Name:         "when the category is not found",
+			Params:       "",
+			ExpectedCode: http.StatusNotFound,
+			ExpectedBody: "{\"error\":\"Not found.\"}",
+		},
+		{
+			Name:         "when the user does not exist",
+			Params:       "",
+			ExpectedCode: http.StatusUnauthorized,
+			ExpectedBody: "{\"error\":\"Not authorized\"}",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.Name, func(t *testing.T) {
+			categoryId := "1"
+			request, _ := http.NewRequest("DELETE", "/api/categories/"+categoryId, strings.NewReader(tt.Params))
 			request.Header.Set("Content-Type", "application/json")
 			request.Header.Set("Authorization", "Bearer "+token)
 
