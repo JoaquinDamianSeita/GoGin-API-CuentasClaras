@@ -7,6 +7,7 @@ import (
 	"errors"
 	"net/http"
 	"testing"
+	"time"
 )
 
 type MockUserRepository struct{}
@@ -60,10 +61,50 @@ func (auth *MockAuth) ValidateToken(signedToken string) (claims *dto.JWTClaim, e
 	return nil, errors.New("Invalid token")
 }
 
+type MockOperationRepositoryUser struct{}
+
+func (u MockOperationRepositoryUser) FindOperationsByUser(user dao.User) ([]dao.Operation, error) {
+	date, _ := time.Parse(time.RFC3339, "2023-10-23T21:33:03.73297-03:00")
+
+	if user.ID == 1 {
+		operations := []dao.Operation{}
+		user.Operations = append(operations, dao.Operation{
+			ID:     1,
+			Type:   "income",
+			Amount: 100.5,
+			Date:   date,
+			Category: dao.Category{
+				Name:  "Work",
+				Color: "#fdg123",
+			},
+		})
+	} else if user.ID == 2 {
+		user.Operations = []dao.Operation{}
+	}
+	return user.Operations, nil
+}
+
+func (u MockOperationRepositoryUser) FindOperationByUserAndId(user dao.User, operationID int) (dao.Operation, error) {
+	return dao.Operation{}, nil
+}
+
+func (u MockOperationRepositoryUser) Save(operation *dao.Operation) (dao.Operation, error) {
+	return dao.Operation{}, nil
+}
+
+func (u MockOperationRepositoryUser) Update(operation *dao.Operation) (dao.Operation, error) {
+	return dao.Operation{}, nil
+}
+
+func (u MockOperationRepositoryUser) Delete(operation *dao.Operation) (dao.Operation, error) {
+	return dao.Operation{}, nil
+}
+
 func TestUserServiceImpl_RegisterUser(t *testing.T) {
 	userRepository := &MockUserRepository{}
 	auth := &MockAuth{}
-	userService := UserServiceInit(userRepository, auth)
+	operationRepository := &MockOperationRepositoryUser{}
+	userService := UserServiceInit(userRepository, auth, operationRepository)
 	serviceUri := "/api/users"
 
 	var tests = []testhelpers.TestStructure{
@@ -102,7 +143,8 @@ func TestUserServiceImpl_RegisterUser(t *testing.T) {
 func TestUserServiceImpl_LoginUser(t *testing.T) {
 	userRepository := &MockUserRepository{}
 	auth := &MockAuth{}
-	userService := UserServiceInit(userRepository, auth)
+	operationRepository := &MockOperationRepositoryUser{}
+	userService := UserServiceInit(userRepository, auth, operationRepository)
 	serviceUri := "/api/users/login"
 
 	var tests = []testhelpers.TestStructure{
@@ -141,7 +183,8 @@ func TestUserServiceImpl_LoginUser(t *testing.T) {
 func TestUserServiceImpl_CurrentUser(t *testing.T) {
 	userRepository := &MockUserRepository{}
 	auth := &MockAuth{}
-	userService := UserServiceInit(userRepository, auth)
+	operationRepository := &MockOperationRepositoryUser{}
+	userService := UserServiceInit(userRepository, auth, operationRepository)
 
 	var tests = []testhelpers.TestInterfaceStructure{
 		{
@@ -154,6 +197,41 @@ func TestUserServiceImpl_CurrentUser(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.Name, func(t *testing.T) {
 			code, response := userService.CurrentUser(tt.Params.(dao.User))
+
+			testhelpers.AssertExpectedCodeAndResponseServiceDto(t, tt, code, response)
+		})
+	}
+}
+
+func TestUserServiceImpl_BalanceUser(t *testing.T) {
+	userRepository := &MockUserRepository{}
+	auth := &MockAuth{}
+	operationRepository := &MockOperationRepositoryUser{}
+	userService := UserServiceInit(userRepository, auth, operationRepository)
+
+	var tests = []testhelpers.TestInterfaceStructure{
+		{
+			Name:         "when the request is successful",
+			Params:       "",
+			ExpectedCode: http.StatusOK,
+			ExpectedBody: "{\"total_balance\":\"100.50\"}",
+		},
+		{
+			Name:         "when the user has no registered operations",
+			Params:       "",
+			ExpectedCode: http.StatusOK,
+			ExpectedBody: "{\"total_balance\":\"0.00\"}",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.Name, func(t *testing.T) {
+			user := dao.User{ID: 1}
+
+			if tt.Name == "when the user has no registered operations" {
+				user = dao.User{ID: 2}
+			}
+
+			code, response := userService.BalanceUser(user)
 
 			testhelpers.AssertExpectedCodeAndResponseServiceDto(t, tt, code, response)
 		})

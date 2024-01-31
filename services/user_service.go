@@ -63,6 +63,7 @@ func (u UserServiceImpl) CurrentUser(user dao.User) (int, map[string]any) {
 }
 
 func (u UserServiceImpl) BalanceUser(user dao.User) (int, interface{}) {
+	println("ACAAA ID DE OPERACION: ")
 	operations, _ := u.operationRepository.FindOperationsByUser(user)
 	var balance float32 = 0.0
 	for _, operation := range operations {

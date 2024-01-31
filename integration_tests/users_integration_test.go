@@ -211,3 +211,50 @@ func TestUsersIntegration_Current_InvalidRequest(t *testing.T) {
 	}
 	teardownTest()
 }
+
+func TestUsersIntegration_Balance_ValidRequest(t *testing.T) {
+	router := setupTest()
+	var tests = []testhelpers.TestStructure{
+		{
+			Name:         "when the request is successful",
+			Params:       "",
+			ExpectedCode: http.StatusOK,
+			ExpectedBody: "{\"total_balance\":\"1200.50\"}",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.Name, func(t *testing.T) {
+			request, _ := http.NewRequest("GET", "/api/users/balance", strings.NewReader(tt.Params))
+			request.Header.Set("Authorization", "Bearer "+token)
+
+			responseRecorder := httptest.NewRecorder()
+			router.ServeHTTP(responseRecorder, request)
+
+			testhelpers.AssertExpectedCodeAndBodyResponse(t, tt, responseRecorder)
+		})
+	}
+	teardownTest()
+}
+
+func TestUsersIntegration_Balance_InvalidRequest(t *testing.T) {
+	router := setupTest()
+	var tests = []testhelpers.TestStructure{
+		{
+			Name:         "when user does not exists",
+			Params:       "",
+			ExpectedCode: http.StatusUnauthorized,
+			ExpectedBody: "{\"error\":\"Not authorized\"}",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.Name, func(t *testing.T) {
+			request, _ := http.NewRequest("GET", "/api/users/balance", strings.NewReader(tt.Params))
+
+			responseRecorder := httptest.NewRecorder()
+			router.ServeHTTP(responseRecorder, request)
+
+			testhelpers.AssertExpectedCodeAndBodyResponse(t, tt, responseRecorder)
+		})
+	}
+	teardownTest()
+}
