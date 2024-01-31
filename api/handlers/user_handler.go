@@ -12,6 +12,7 @@ type UserHandler interface {
 	RegisterUser(c *gin.Context)
 	LoginUser(c *gin.Context)
 	CurrentUser(c *gin.Context)
+	BalanceUser(ctx *gin.Context)
 }
 
 type UserHandlerImpl struct {
@@ -41,6 +42,11 @@ func (u UserHandlerImpl) LoginUser(ctx *gin.Context) {
 
 func (u UserHandlerImpl) CurrentUser(ctx *gin.Context) {
 	code, response := u.svc.CurrentUser(ParseUserFromContext(ctx))
+	ctx.JSON(code, response)
+}
+
+func (u UserHandlerImpl) BalanceUser(ctx *gin.Context) {
+	code, response := u.svc.BalanceUser(ParseUserFromContext(ctx))
 	ctx.JSON(code, response)
 }
 

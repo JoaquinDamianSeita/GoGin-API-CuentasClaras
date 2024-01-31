@@ -40,6 +40,14 @@ func (m *MockUserService) CurrentUser(user dao.User) (int, map[string]any) {
 	return http.StatusOK, gin.H{"username": "test.user", "email": "test@example.com"}
 }
 
+func (m *MockUserService) BalanceUser(user dao.User) (int, interface{}) {
+	if user.ID != 1 {
+		return http.StatusUnauthorized, gin.H{"error": "Not authorized"}
+	}
+
+	return http.StatusOK, gin.H{"total_balance": "100.50"}
+}
+
 func TestUserHandlerImpl_RegisterUser(t *testing.T) {
 	userService := &MockUserService{}
 	userHandler := UserHandlerInit(userService)
@@ -191,6 +199,31 @@ func TestUserHandlerImpl_CurrentUser(t *testing.T) {
 			ctx.Set("user", dao.User{ID: 1})
 
 			userHandler.CurrentUser(ctx)
+
+			testhelpers.AssertExpectedCodeAndBodyResponse(t, tt, responseRecorder)
+		})
+	}
+}
+
+func TestUserHandlerImpl_BalanceUser(t *testing.T) {
+	userService := &MockUserService{}
+	userHandler := UserHandlerInit(userService)
+	serviceUri := "/api/users/balance"
+
+	var tests = []testhelpers.TestStructure{
+		{
+			Name:         "when the request is successful",
+			Params:       "",
+			ExpectedCode: http.StatusOK,
+			ExpectedBody: "{\"total_balance\":\"100.50\"}",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.Name, func(t *testing.T) {
+			ctx, responseRecorder := testhelpers.MockGetRequest(serviceUri)
+			ctx.Set("user", dao.User{ID: 1})
+
+			userHandler.BalanceUser(ctx)
 
 			testhelpers.AssertExpectedCodeAndBodyResponse(t, tt, responseRecorder)
 		})

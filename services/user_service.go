@@ -15,11 +15,13 @@ type UserService interface {
 	RegisterUser(registerUserRequest dto.RegisterUserRequest) (int, map[string]any)
 	LoginUser(loginUserRequest dto.LoginRequest) (int, map[string]any)
 	CurrentUser(user dao.User) (int, map[string]any)
+	BalanceUser(user dao.User) (int, interface{})
 }
 
 type UserServiceImpl struct {
-	userRepository repository.UserRepository
-	auth           auth.Auth
+	userRepository      repository.UserRepository
+	auth                auth.Auth
+	operationRepository repository.OperationRepository
 }
 
 func (u UserServiceImpl) RegisterUser(registerUserRequest dto.RegisterUserRequest) (int, map[string]any) {
@@ -60,9 +62,25 @@ func (u UserServiceImpl) CurrentUser(user dao.User) (int, map[string]any) {
 	return http.StatusOK, gin.H{"email": user.Email, "username": user.Username}
 }
 
-func UserServiceInit(userRepository repository.UserRepository, auth auth.Auth) *UserServiceImpl {
+func (u UserServiceImpl) BalanceUser(user dao.User) (int, interface{}) {
+	println("ACAAA ID DE OPERACION: ")
+	operations, _ := u.operationRepository.FindOperationsByUser(user)
+	var balance float32 = 0.0
+	for _, operation := range operations {
+		if operation.Type == INCOME_TYPE {
+			balance += float32(operation.Amount)
+		} else {
+			balance -= float32(operation.Amount)
+		}
+	}
+
+	return http.StatusOK, gin.H{"total_balance": fmt.Sprintf("%.2f", balance)}
+}
+
+func UserServiceInit(userRepository repository.UserRepository, auth auth.Auth, operationRepository repository.OperationRepository) *UserServiceImpl {
 	return &UserServiceImpl{
-		userRepository: userRepository,
-		auth:           auth,
+		userRepository:      userRepository,
+		auth:                auth,
+		operationRepository: operationRepository,
 	}
 }

@@ -20,6 +20,7 @@ func UserRoutes(router *gin.RouterGroup, initConfig *config.Initialization, midd
 		user.POST("", initConfig.UserHdler.RegisterUser)
 		user.POST("/login", initConfig.UserHdler.LoginUser)
 		user.GET("/current", middleware, initConfig.UserHdler.CurrentUser)
+		user.GET("/balance", middleware, initConfig.UserHdler.BalanceUser)
 	}
 }
 
